@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 47c72f84ad4ed894d8bd3b425369a250
+labels:
+- MMO
+- RPG
+- MMORPG
+- Camera
+- Controller
+- Script
+- WoW
+timeCreated: 1427027178
+licenseType: Store
+ShaderImporter:
+  defaultTextures:
+  - _MainTex: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

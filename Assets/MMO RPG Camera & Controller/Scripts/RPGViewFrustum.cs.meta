@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: ab24fa53157c21c4cb88b6f8b776da9b
+labels:
+- MMO
+- RPG
+- MMORPG
+- Camera
+- Controller
+- Script
+- WoW
+timeCreated: 1440160437
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
