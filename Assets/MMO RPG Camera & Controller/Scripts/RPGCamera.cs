@@ -33,7 +33,7 @@ public class RPGCamera : MonoBehaviour {
 	public float DistanceSmoothTime = 0.7f;
 	public float StartMouseX = 0;
 	public float StartMouseY = 15.0f;
-	public float StartDistance = 2.0f;
+	public float StartDistance = 4.0f;
 	public AlignCharacter AlignCharacter = AlignCharacter.OnAlignmentInput;
 	public string AlignmentInput = "Fire2";
 	public bool AlignCameraWhenMoving = true;
@@ -134,6 +134,11 @@ public class RPGCamera : MonoBehaviour {
 		#region Get inputs
 
 		float smoothTime = MouseSmoothTime;
+		// RPG MMO CAMERA required
+		if (!(Input.GetButton("Fire1") && Input.GetAxis("Mouse X") != 0)) {
+            smoothTime = 0;
+        }
+
 		float mouseYMinLimit = _mouseY;
 		// Get mouse input
 		if (ActivateCameraControl && (Input.GetButton("Fire1") || Input.GetButton("Fire2") || AlwaysRotateCamera)) {
@@ -227,8 +232,9 @@ public class RPGCamera : MonoBehaviour {
 
 		if (ActivateCameraControl) {
 			// Get scroll wheel input
-			_desiredDistance = _desiredDistance - Input.GetAxis("Mouse ScrollWheel") * MouseScrollSensitivity;
-			_desiredDistance = Mathf.Clamp(_desiredDistance, MinDistance, MaxDistance);
+			// zooming is not allowed in this game
+			// _desiredDistance = _desiredDistance - Input.GetAxis("Mouse ScrollWheel") * MouseScrollSensitivity;
+			// _desiredDistance = Mathf.Clamp(_desiredDistance, MinDistance, MaxDistance);
 		
 			// Check if one of the switch buttons is pressed
 			if (Input.GetButton("First Person Zoom")) {
@@ -236,7 +242,7 @@ public class RPGCamera : MonoBehaviour {
 			} else if (Input.GetButton("Maximum Distance Zoom")) {
 				_desiredDistance = MaxDistance;
 			}
-		}
+        }
 
 		if (_rpgMotor != null) {
 			// Align the camera with the character when moving forward or backwards
