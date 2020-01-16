@@ -7,13 +7,13 @@ namespace UnityStandardAssets.Characters.ThirdPerson
     [RequireComponent(typeof (ThirdPersonCharacter))]
     public class ThirdPersonUserControl : MonoBehaviour
     {
+        public bool m_JumpAllowed = false;        // no jump no BUG my dear
         private ThirdPersonCharacter m_Character; // A reference to the ThirdPersonCharacter on the object
         private Transform m_Cam;                  // A reference to the main camera in the scenes transform
         private Vector3 m_CamForward;             // The current forward direction of the camera
         private Vector3 m_Move;
         private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
-        // RPG MMO CAMERA required
-        private RPGCamera m_CamScript;
+        private RPGCamera m_CamScript;            // RPG MMO CAMERA required
 
         private void Start()
         {
@@ -38,7 +38,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         private void Update()
         {
-            if (!m_Jump)
+            if (!m_Jump && m_JumpAllowed)
             {
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
             }

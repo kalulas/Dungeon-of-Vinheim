@@ -53,7 +53,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 			// direction.
 			if (move.magnitude > 1f) move.Normalize();
 			move = transform.InverseTransformDirection(move);
-			CheckGroundStatus();
+			CheckGroundStatus(move);
 			move = Vector3.ProjectOnPlane(move, m_GroundNormal);
 			m_TurnAmount = Mathf.Atan2(move.x, move.z);
 			m_ForwardAmount = move.z;
@@ -203,16 +203,23 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 		}
 
 
-		void CheckGroundStatus()
+		void CheckGroundStatus(Vector3 move)
 		{
 			RaycastHit hitInfo;
-#if UNITY_EDITOR
-			// helper to visualise the ground check ray in the scene view
-			Debug.DrawLine(transform.position + (Vector3.up * 0.1f), transform.position + (Vector3.up * 0.1f) + (Vector3.down * m_GroundCheckDistance));
-#endif
-			// 0.1f is a small offset to start the ray from inside the character
-			// it is also good to note that the transform position in the sample assets is at the base of the character
-			if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, m_GroundCheckDistance))
+
+            // 0.1f is a small offset to start the ray from inside the character
+            // it is also good to note that the transform position in the sample assets is at the base of the character
+            Vector3 RaycastOrigin = transform.position + (Vector3.up * 0.1f);
+            // if(move.Equals(Vector3.zero)){
+            //     RaycastOrigin -= LastMove;
+            // }
+			// else{
+            //     LastMove = move * 5.0f;
+            //     RaycastOrigin -= move * 5.0f;
+            // }
+            // RaycastOrigin.z -= 0.2f;
+			// RaycastOrigin.x -= 0.2f;
+            if (Physics.Raycast(RaycastOrigin, Vector3.down, out hitInfo, m_GroundCheckDistance))
 			{
 				m_GroundNormal = hitInfo.normal;
 				m_IsGrounded = true;
@@ -224,6 +231,13 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 				m_GroundNormal = Vector3.up;
 				m_Animator.applyRootMotion = false;
 			}
-		}
+            Debug.Log("m_IsGrounded: " + m_IsGrounded);
+
+			#if UNITY_EDITOR
+			// helper to visualise the ground check ray in the scene view
+			Debug.DrawLine(RaycastOrigin, RaycastOrigin + (Vector3.down * m_GroundCheckDistance), Color.green);
+            // Debug.DrawRay(RaycastOrigin, Vector3.up*10.0f, Color.blue);
+#endif
+        }
 	}
 }
