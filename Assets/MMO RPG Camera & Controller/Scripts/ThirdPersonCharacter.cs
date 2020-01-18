@@ -210,15 +210,6 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             // 0.1f is a small offset to start the ray from inside the character
             // it is also good to note that the transform position in the sample assets is at the base of the character
             Vector3 RaycastOrigin = transform.position + (Vector3.up * 0.1f);
-            // if(move.Equals(Vector3.zero)){
-            //     RaycastOrigin -= LastMove;
-            // }
-			// else{
-            //     LastMove = move * 5.0f;
-            //     RaycastOrigin -= move * 5.0f;
-            // }
-            // RaycastOrigin.z -= 0.2f;
-			// RaycastOrigin.x -= 0.2f;
             if (Physics.Raycast(RaycastOrigin, Vector3.down, out hitInfo, m_GroundCheckDistance))
 			{
 				m_GroundNormal = hitInfo.normal;
@@ -231,7 +222,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 				m_GroundNormal = Vector3.up;
 				m_Animator.applyRootMotion = false;
 			}
-            Debug.Log("m_IsGrounded: " + m_IsGrounded);
+            // Debug.Log("m_IsGrounded: " + m_IsGrounded);
 
 			#if UNITY_EDITOR
 			// helper to visualise the ground check ray in the scene view
