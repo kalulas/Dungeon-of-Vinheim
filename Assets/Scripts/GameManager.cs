@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// 尝试单例脚本管理地图信息并进行关卡切换
+// 单例脚本管理地图信息并进行关卡切换
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
