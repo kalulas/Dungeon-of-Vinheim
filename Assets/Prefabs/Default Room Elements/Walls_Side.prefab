@@ -461,10 +461,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 5789470963287294490}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 003507e678d82c441aaa52fceef0b646, type: 3}
+  m_Script: {fileID: 11500000, guid: a4082a376096a524681bc3fdf1be2c06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsEntrance: 1
+  type: 0
   direction: 0
 --- !u!1001 &4804999880807279447
 PrefabInstance:

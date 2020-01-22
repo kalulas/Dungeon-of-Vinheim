@@ -4,6 +4,7 @@ Temp/
 Packages/
 .vscode/
 .svn/
+Build/
 obj/
 *.sln
 *.csproj
