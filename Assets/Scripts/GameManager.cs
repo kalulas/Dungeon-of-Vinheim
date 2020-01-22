@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.UI;
 
 public static class IListExtensions {
     /// <summary>
@@ -39,8 +40,9 @@ public class GameManager : MonoBehaviour
     private int currentLocation;
     private int emptyRoomNumber;
     private List<Room> rooms = new List<Room>();
+    private GameObject mainMenu;
     // private List<Transform> positions = new List<Transform>(5);
-    
+
     static GameManager(){
         GameObject gm = new GameObject("#GameManager#");
         DontDestroyOnLoad(gm);
@@ -57,6 +59,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("instance of 'Game Manager' generated.");
         // player starts from room 0 - starting room
         currentLocation = 0;
+
         // Load Starting Room Extra (only once)
         GameObject roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Starting Room Extra"));
         rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(RoomType.StartingRoom, roomExtra));
@@ -97,6 +100,10 @@ public class GameManager : MonoBehaviour
             Debug.Log("Room" + i + " : " + roomtype);
         }
 
+        mainMenu = GameObject.Find("Main Menu");
+        DrawMinimap();
+        mainMenu.SetActive(false);
+
         // justify player position
         playerTransform = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         playerTransform.position = positions[4];
@@ -111,6 +118,46 @@ public class GameManager : MonoBehaviour
             }
         });
 
+    }
+
+    /// <summary>
+    /// Draw map of the dungeon on GUI minimap
+    /// </summary>
+    public void DrawMinimap(){
+        GameObject minimap = GameObject.Find("Minimap");
+        RectTransform minimapRT = minimap.GetComponent<RectTransform>();
+        float width = minimapRT.rect.width / mapSize - 5;
+        float height = minimapRT.rect.height / mapSize - 5;
+        float posX = - minimapRT.rect.width / 2 + width / 2;
+        float posY = - minimapRT.rect.width / 2 + width / 2;
+        Debug.LogFormat("width:{0}, height:{1}, posX:{2}, posY:{3}", width, height, posX, posY);
+        for (int i = 0; i < mapSize; i++)
+        {
+            for (int j = 0; j < mapSize; j++)
+            {
+                int roomIdx = mapSize * i + j;
+                GameObject room = new GameObject("room" + roomIdx);
+                room.transform.SetParent(minimapRT);
+                room.transform.localScale = Vector3.one;
+
+                RectTransform rt = room.AddComponent<RectTransform>();
+                rt.anchoredPosition = new Vector2(posX + width * j, posY + height * i);
+                rt.sizeDelta = new Vector2(width, height);
+                
+                room.AddComponent<CanvasRenderer>();
+                Image img = room.AddComponent<Image>();
+                switch (rooms[roomIdx].GetRoomType())
+                {
+                    case RoomType.BattleRoom: img.sprite = Resources.Load<Sprite>("Exclamation_Yellow");break;
+                    case RoomType.BossRoom: img.sprite = Resources.Load<Sprite>("Exclamation_Red");break;
+                    case RoomType.RewardRoom: img.sprite = Resources.Load<Sprite>("Exclamation_Yellow");room.transform.Rotate(0f, 0f, -90f); break;
+                    case RoomType.EmptyRoom: img.sprite = Resources.Load<Sprite>("Exclamation_Gray");room.transform.Rotate(0f, 0f, -90f); break;
+                    case RoomType.StartingRoom: img.sprite = Resources.Load<Sprite>("Exclamation_Gray");break;
+                    default:break;
+                }
+            }
+        }
+        minimap.SetActive(false);
     }
 
     // triggered on Room Icon Select
@@ -174,12 +221,13 @@ public class GameManager : MonoBehaviour
             rooms[currentLocation].SetRoomActive(true);
             Debug.Log("Direction " + direction + ": Room" + (currentLocation-pace) + " --> Room" + currentLocation);
         }
-
     }
 
     // Update is called once per frame
-    // void Update()
-    // {
-        
-    // }
+    void Update()
+    {
+        if(Input.GetButtonDown("Main Menu")){
+            mainMenu.SetActive(!mainMenu.activeSelf);
+        }    
+    }
 }
