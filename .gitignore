@@ -2,6 +2,10 @@ Library/
 Logs/
 Temp/
 Packages/
+.vscode/
+.svn/
+Build/
+obj/
 *.sln
 *.csproj
 *.sln
