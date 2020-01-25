@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using Invector.vCharacterController;
 
 public class UIManager : MonoBehaviour
 {
@@ -87,15 +88,28 @@ public class UIManager : MonoBehaviour
 
     void Update()
     {
-        if(Input.GetButtonDown("Cancel")){
+        if(Input.GetButtonDown("Escape")){
             if (menuStack.Count == 0) {
                 HideAndActive(mainMenu);
+                // unlock cursor from the centor of screen, show cursor and lock all input(basic and melee)
+                GameObject.FindGameObjectWithTag("Player").SendMessage("LockCursor", true);
+                // ↓ same idea different method
+                // GameObject.FindGameObjectWithTag("Player").GetComponent<vThirdPersonInput>().LockCursor(true);
+                GameObject.FindGameObjectWithTag("Player").SendMessage("ShowCursor", true);
+                GameObject.FindGameObjectWithTag("Player").SendMessage("SetLockAllInput", true);
             }
             else
             {
                 menuStack.Peek().SetActive(false);
                 menuStack.Pop();
-                if(menuStack.Count != 0) menuStack.Peek().SetActive(true);
+                if (menuStack.Count != 0) menuStack.Peek().SetActive(true);
+                else
+                {
+                    // lock cursor again, hide cursor and unlock all input(basic and melee)
+                    GameObject.FindGameObjectWithTag("Player").SendMessage("LockCursor", false);
+                    GameObject.FindGameObjectWithTag("Player").SendMessage("ShowCursor", false);
+                    GameObject.FindGameObjectWithTag("Player").SendMessage("SetLockAllInput", false);
+                }
             }
         }    
     }

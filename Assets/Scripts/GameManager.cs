@@ -112,7 +112,7 @@ public class GameManager : MonoBehaviour
         // Add Environment(like entrances) Trigger Listener
         ItemTrigger.triggerEventStay.AddListener(delegate (Collider collider){
             // TODO: use GUI to show information and ask for permission
-            if(Input.GetButtonDown("Confirm")){
+            if(Input.GetButtonDown("A")){
                 if(ItemTrigger.triggerEventStay.type == TriggerEventType.Entrance){
                     HandleEntranceTriggerEvent(ItemTrigger.triggerEventStay.direction);
                 }
