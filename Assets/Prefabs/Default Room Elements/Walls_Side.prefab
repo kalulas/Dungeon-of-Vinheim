@@ -414,7 +414,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8369486110129988855}
   - component: {fileID: 4363367283524083898}
-  - component: {fileID: 4227253496211527855}
+  - component: {fileID: 5859850793131316496}
+  - component: {fileID: 6246808590006156702}
   m_Layer: 0
   m_Name: Entrance
   m_TagString: Untagged
@@ -452,7 +453,23 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 3.545001, y: 2.9181876, z: 1.6590707}
   m_Center: {x: 11.106556, y: 1.4161707, z: -1.4460601}
---- !u!114 &4227253496211527855
+--- !u!111 &5859850793131316496
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5789470963287294490}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: bd6080309285a6345bc2bbb72e2b9fd0, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: bd6080309285a6345bc2bbb72e2b9fd0, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0
+--- !u!114 &6246808590006156702
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -466,6 +483,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 0
   direction: 0
+  message: enter next room
+  prefix: 1
 --- !u!1001 &4804999880807279447
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -681,7 +700,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 479156, guid: 7ddf8511e259b61448ee08c0759223e2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 75
       objectReference: {fileID: 0}
     - target: {fileID: 479156, guid: 7ddf8511e259b61448ee08c0759223e2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -851,7 +870,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 427910, guid: 7b2cf94cdab0ced489fd2a15c809d7b3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: -75
       objectReference: {fileID: 0}
     - target: {fileID: 427910, guid: 7b2cf94cdab0ced489fd2a15c809d7b3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -1424,6 +1443,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_Env_Door_Frame_Round_02
       objectReference: {fileID: 0}
+    - target: {fileID: 116744, guid: 5afc051ea82884847b27233ef41ff811, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 440134, guid: 5afc051ea82884847b27233ef41ff811, type: 3}
       propertyPath: m_LocalPosition.x
       value: 11.100476
@@ -1567,15 +1590,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 94ca6d6ca29cc81419b65c6bf9286a6f, type: 3}
---- !u!1 &4804999882036366456 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 180174, guid: 94ca6d6ca29cc81419b65c6bf9286a6f,
-    type: 3}
-  m_PrefabInstance: {fileID: 4804999882036278198}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &4804999882036628628 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 442146, guid: 94ca6d6ca29cc81419b65c6bf9286a6f,
+    type: 3}
+  m_PrefabInstance: {fileID: 4804999882036278198}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4804999882036366456 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 180174, guid: 94ca6d6ca29cc81419b65c6bf9286a6f,
     type: 3}
   m_PrefabInstance: {fileID: 4804999882036278198}
   m_PrefabAsset: {fileID: 0}

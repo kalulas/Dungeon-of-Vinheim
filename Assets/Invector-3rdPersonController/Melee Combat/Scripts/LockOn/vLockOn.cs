@@ -78,6 +78,8 @@ namespace Invector.vCharacterController
                 {
                     _aimImage = Instantiate(aimImagePrefab, Vector2.zero, Quaternion.identity) as RectTransform;
                     _aimImage.SetParent(aimCanvas.transform);
+                    // EDIT: uncomment this while using render mode camera
+                    _aimImage.transform.localScale = Vector3.one;
                     return _aimImage;
                 }
                 return null;

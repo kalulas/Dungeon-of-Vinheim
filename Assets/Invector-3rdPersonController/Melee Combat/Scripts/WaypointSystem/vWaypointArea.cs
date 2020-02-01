@@ -29,9 +29,9 @@ namespace Invector.vCharacterController.AI
             return _nodes;
         }
 
-        public List<vPoint> GetValidSubPoints(vWaypoint waipoint,bool reverse = false)
+        public List<vPoint> GetValidSubPoints(vWaypoint waypoint,bool reverse = false)
         {
-            var _nodes = waipoint.subPoints.FindAll(node => node.isValid);
+            var _nodes = waypoint.subPoints.FindAll(node => node.isValid);
             if (reverse) _nodes.Reverse();
             return _nodes;
         }

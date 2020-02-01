@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Invector.vCharacterController.AI;
 
 public enum RoomType
 {
@@ -21,15 +22,32 @@ public class Room : ScriptableObject
     [SerializeField]
     private GameObject roomExtra;
     [SerializeField]
-    private List<GameObject> enemyList;
+    private List<GameObject> enemyList = new List<GameObject>();
     [SerializeField]
-    private List<GameObject> itemList;
+    private int enemyCount;
+    [SerializeField]
+    private List<GameObject> itemList = new List<GameObject>();
     
     public Room SetUp(RoomType type, GameObject extra=null){
         roomType = type;
         roomExtra = extra;
         // TODO: create enemies & items here
-        enemyList = null;
+        switch (type)
+        {
+            case RoomType.BattleRoom:
+                List<Transform> spawnPoints = GameManager.instance.spawnPoints;
+                enemyCount = Random.Range(1, 9);
+                vWaypointArea pathArea = GameManager.instance.WaypointArea.GetComponent<vWaypointArea>();
+                for (int i = 0; i < enemyCount; i++){
+                    GameObject enemy = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Enemies/Skeleton_Slave_01"), spawnPoints[i]);
+                    enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
+                    enemy.SetActive(false);
+                    enemyList.Add(enemy);
+                }
+                break;
+            default: break;
+        }
+        // enemyList = null;
         itemList = null;
         return this;
     }

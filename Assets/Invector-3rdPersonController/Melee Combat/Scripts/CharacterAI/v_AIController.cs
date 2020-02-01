@@ -439,7 +439,9 @@ namespace Invector.vCharacterController.AI
             {
                 yield return StartCoroutine(GoToDestionation());
             }
-
+            // EDIT: Chase target while patrolling waypoints
+            if (canSeeTarget)
+                currentState = AIStates.Chase;
         }
 
         protected virtual IEnumerator GoToDestionation()

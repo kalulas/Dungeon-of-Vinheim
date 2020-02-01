@@ -16,7 +16,10 @@ public enum Direction{
     Up
 }
 
-public class TriggerEvent : UnityEvent<Collider>{
+public class AnimationEvent : UnityEvent{}
+
+// Collider may not be necessary can delete later on
+public class TriggerEvent : UnityEvent<Collider, GameObject>{
     public TriggerEventType type;
     public Direction direction;
 }
@@ -26,21 +29,40 @@ public class ItemTrigger : MonoBehaviour
     // Trigger Event will now bring the information of the entrance
     public TriggerEventType type;
     public Direction direction;
+    public string message;
+    public bool prefix;
     // NOTE: only have one triggerEventEnter (static)
-    public static TriggerEvent triggerEventEnter = new TriggerEvent();
+    
     public static TriggerEvent triggerEventStay = new TriggerEvent();
+    // public static TriggerEvent triggerEventEnter = new TriggerEvent();
+    // public static TriggerEvent triggerEventExit = new TriggerEvent();
+    
+    public static AnimationEvent entranceFullyOpenEvent = new AnimationEvent();
 
-    // void OnTriggerEnter(Collider collider){
-    //     if(type == TriggerEventType.Entrance) triggerEventEnter.direction = direction;
-    //     triggerEventEnter.type = type;
-    //     triggerEventEnter.Invoke(collider);
-    // }
+    public void DoorFullyOpen(){
+        entranceFullyOpenEvent.Invoke();
+    }
+    
+    void OnTriggerEnter(Collider collider){
+        if (collider.gameObject.tag == "Player")
+        {
+            UIManager.setActionTextContentEvent.Invoke(message, prefix);
+            UIManager.setActionTextActiveEvent.Invoke(true);
+        }
+    }
 
+    void OnTriggerExit(Collider collider){
+        if (collider.gameObject.tag == "Player")
+        {
+            UIManager.setActionTextActiveEvent.Invoke(false);
+        }
+    }
+    
     void OnTriggerStay(Collider collider){
         if(collider.gameObject.tag == "Player"){
             if(type == TriggerEventType.Entrance) triggerEventStay.direction = direction;
             triggerEventStay.type = type;
-            triggerEventStay.Invoke(collider);
+            triggerEventStay.Invoke(collider, this.gameObject);
         }
     }
 }

@@ -1,5 +1,7 @@
 fileFormatVersion: 2
 guid: b86ab3468795f874daeb5dbcf36d8c70
+labels:
+- Ground
 PrefabImporter:
   externalObjects: {}
   userData: 

@@ -3,15 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 using Invector.vCharacterController;
+
+public class SetActiveEvent : UnityEvent<bool>{}
+public class SetContentEvent : UnityEvent<string, bool>{}
 
 public class UIManager : MonoBehaviour
 {
+    public static SetActiveEvent setActionTextActiveEvent = new SetActiveEvent();
+    public static SetContentEvent setActionTextContentEvent = new SetContentEvent();
     public Button exitGameButton;
     public Button minimapButton;
     public GameObject mainMenu;
     public GameObject minimap;
     public GameObject minimapMenu;
+    public GameObject actionText;
+
     private Stack<GameObject> menuStack = new Stack<GameObject>();
 
     void Start(){
@@ -22,6 +30,16 @@ public class UIManager : MonoBehaviour
             OnClick(minimapButton.gameObject);
         });
         DrawMinimap();
+        // use GUI to show information and ask for permission
+        // information depens on event's message
+        setActionTextActiveEvent.AddListener(delegate (bool value)
+        {
+            SetActionTextActive(value);
+        });
+        setActionTextContentEvent.AddListener(delegate (string content, bool value)
+        {
+            ChangeActionText(content, value);
+        });
     }
 
     void OnClick(GameObject go)
@@ -86,6 +104,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void SetActionTextActive(bool value){
+        actionText.SetActive(value);
+    }
+    
+    /// <summary>
+    /// <para name="value">value: Used to decide whether to add "PRESS E TO" prefix or not </para>
+    /// </summary>
+    public void ChangeActionText(string message, bool value){
+        string prefix = value ? "PRESS E TO " : "";
+        actionText.GetComponent<Text>().text = prefix + message;
+    }
+
     void Update()
     {
         if(Input.GetButtonDown("Escape")){
@@ -94,7 +124,7 @@ public class UIManager : MonoBehaviour
                 // unlock cursor from the centor of screen, show cursor and lock all input(basic and melee)
                 GameObject.FindGameObjectWithTag("Player").SendMessage("LockCursor", true);
                 // ↓ same idea different method
-                // GameObject.FindGameObjectWithTag("Player").GetComponent<vThirdPersonInput>().LockCursor(true);
+                // GameObject.FindGameObjectWithTag("Player").GetComponent<vThirdPersonInput>().SetLockBasicInput(true);
                 GameObject.FindGameObjectWithTag("Player").SendMessage("ShowCursor", true);
                 GameObject.FindGameObjectWithTag("Player").SendMessage("SetLockAllInput", true);
             }
