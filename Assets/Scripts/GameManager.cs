@@ -39,7 +39,11 @@ public class GameManager : MonoBehaviour {
     // patrol area for enemies
     public GameObject WaypointArea;
     // transform data for enemies' spawning
-    public List<Transform> spawnPoints = new List<Transform> ();
+    public List<Transform> enemiesSpawnPoints = new List<Transform> ();
+    // transform data for obstacles' spawning
+    public List<Transform> obstaclesSpawnPoints = new List<Transform> ();
+    // public Transform[] obstaclesSpawnPoints = new Transform[9];
+    
     [SerializeField]
     [Range (3, 10)]
     private int mapSize = 5;
@@ -71,39 +75,45 @@ public class GameManager : MonoBehaviour {
         // now game manager is attached to gameobject 'Game'
         instance = this;
         Debug.Log ("instance of 'Game Manager' generated.");
-        // player starts from room 0 - starting room
         currentLocation = 0;
+        int roomNumber = 0;
+        Room.roomsContainer = new GameObject("rooms");
 
         // Load Starting Room Extra (only once)
         GameObject roomExtra = GameObject.Instantiate<GameObject> (Resources.Load<GameObject> ("Prefabs/RoomExtras/Starting_Room_Extra"));
-        rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (RoomType.StartingRoom, roomExtra));
+        rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (roomNumber++, RoomType.StartingRoom, roomExtra));
         // Build Default Nav Mesh
         GameObject.Find ("Default Room").GetComponent<NavMeshSurface> ().BuildNavMesh ();
 
         // Load Empty Room
-        rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (RoomType.EmptyRoom));
+        rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (roomNumber++, RoomType.EmptyRoom));
 
         // Load Reward Room Prefab once and set active false to hide it
         roomExtra = GameObject.Instantiate<GameObject> (Resources.Load<GameObject> ("Prefabs/RoomExtras/Reward_Room_Extra"));
         roomExtra.SetActive (false);
         // Add Reward Rooms with the prefab but different items
         for (int index = 0; index < mapSize * mapSize / 4; index++) {
-            rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (RoomType.RewardRoom, roomExtra));
+            rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (roomNumber++, RoomType.RewardRoom, roomExtra));
         }
 
         // Load Battle Room Prefab and add Rooms
-        spawnPoints.Shuffle (0, spawnPoints.Count);
+        enemiesSpawnPoints.Shuffle (0, enemiesSpawnPoints.Count);
         roomExtra = GameObject.Instantiate<GameObject> (Resources.Load<GameObject> ("Prefabs/RoomExtras/Battle_Room_Extra"));
-        roomExtra.SetActive (false);
+
+        GameObject enemySpawnRoom = GameObject.Find("Spawn Points");
+        enemySpawnRoom.GetComponentsInChildren<Transform>(true, enemiesSpawnPoints);
+        GameObject randomObstacles = GameObject.Find("Random Obstacles");
+        randomObstacles.GetComponentsInChildren<Transform>(true, obstaclesSpawnPoints);
         // Add Battle Rooms with the prefab but different items
         while (rooms.Count != mapSize * mapSize - 1) {
-            rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (RoomType.BattleRoom, roomExtra));
+            rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (roomNumber++, RoomType.BattleRoom, roomExtra));
         }
+        roomExtra.SetActive (false);
 
         // Load Boss Room Prefab and add Room
         roomExtra = GameObject.Instantiate<GameObject> (Resources.Load<GameObject> ("Prefabs/RoomExtras/Boss_Room_Extra"));
         roomExtra.SetActive (false);
-        rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (RoomType.BossRoom, roomExtra));
+        rooms.Add (ScriptableObject.CreateInstance<Room> ().SetUp (roomNumber++, RoomType.BossRoom, roomExtra));
         // Randomizing the mapSize * mapSize dungeon
         rooms.Shuffle (1, mapSize * mapSize - 1);
 
@@ -205,7 +215,8 @@ public class GameManager : MonoBehaviour {
             ani.Play ("DoorOpen");
             // wait until the entrance is fully open
             ItemTrigger.entranceFullyOpenEvent.AddListener (delegate () {
-                rooms[currentLocation].SetRoomActive (false);
+                rooms[currentLocation].SetRoomEnvActive (false);
+                rooms[currentLocation].SetRoomObjectsActive (false);
                 // update currentLocation
                 currentLocation += pace;
                 // change player's position (Tranform component)
@@ -226,11 +237,12 @@ public class GameManager : MonoBehaviour {
                     default:
                         break;
                 }
-                rooms[currentLocation].SetRoomActive (true);
+                rooms[currentLocation].SetRoomEnvActive (true);
                 // Rebuild Nav Mesh
                 GameObject.Find ("Default Room").GetComponent<NavMeshSurface> ().BuildNavMesh ();
                 // Validation of waypoints and patrol points after rebuilt
                 WaypointsValidation ();
+                rooms[currentLocation].SetRoomObjectsActive (true);
                 Debug.Log ("Direction " + direction + ": Room" + (currentLocation - pace) + " --> Room" + currentLocation);
 
                 // reset the entrance's animation

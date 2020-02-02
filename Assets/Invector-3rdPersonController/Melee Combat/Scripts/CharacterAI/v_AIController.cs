@@ -23,8 +23,11 @@ namespace Invector.vCharacterController.AI
         protected float moveToSpeed;
         protected Vector3 moveToDestination;
 
+        private bool headStart = true;
+
         protected override void Start()
         {
+            Debug.Log("AI Start()");
             base.Start();
             ignorePatrolTimer = -1f;
             moveToDestination = transform.position;
@@ -32,6 +35,18 @@ namespace Invector.vCharacterController.AI
             StartCoroutine(StateRoutine());
             StartCoroutine(FindTarget());
             StartCoroutine(DestinationBehaviour());
+            
+            headStart = false;
+        }
+
+        public void OnEnable()
+        {
+            if (!headStart)
+            {
+                StartCoroutine(StateRoutine());
+                StartCoroutine(FindTarget());
+                StartCoroutine(DestinationBehaviour());
+            }
         }
 
         protected void FixedUpdate()
@@ -129,6 +144,7 @@ namespace Invector.vCharacterController.AI
 
         void ControlLocomotion()
         {
+            
             if (AgentDone() && agent.updatePosition || lockMovement)
             {
                 agent.speed = 0f;

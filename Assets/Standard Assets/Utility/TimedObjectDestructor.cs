@@ -21,7 +21,8 @@ namespace UnityStandardAssets.Utility
             {
                 transform.DetachChildren();
             }
-            DestroyObject(gameObject);
+            // DestroyObject(gameObject);
+            UnityEngine.Object.Destroy(gameObject);
         }
     }
 }
