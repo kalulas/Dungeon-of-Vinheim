@@ -11,16 +11,23 @@ public class SetContentEvent : UnityEvent<string, bool>{}
 
 public class UIManager : MonoBehaviour
 {
+    public static UIManager instance;
     public static SetActiveEvent setActionTextActiveEvent = new SetActiveEvent();
     public static SetContentEvent setActionTextContentEvent = new SetContentEvent();
     public Button exitGameButton;
     public Button minimapButton;
+    public Button[] minimapDirButtons;
     public GameObject mainMenu;
     public GameObject minimap;
     public GameObject minimapMenu;
     public GameObject actionText;
 
+    private Button lastMinimapDirBtn;
     private Stack<GameObject> menuStack = new Stack<GameObject>();
+
+    private void Awake() {
+        instance = this;
+    }
 
     void Start(){
         exitGameButton.onClick.AddListener(delegate (){
@@ -56,6 +63,10 @@ public class UIManager : MonoBehaviour
         else if(go == minimapButton.gameObject){
             HideAndActive(minimapMenu);
         }
+        else if(go.name.StartsWith("room")){
+            // Debug.Log("room clicked" + go.name);
+            SiblingCheck(int.Parse(go.name.Substring("room".Length)));
+        }
     }
 
     public void HideAndActive(GameObject menu){
@@ -64,11 +75,35 @@ public class UIManager : MonoBehaviour
         menu.SetActive(true);
     }
 
+    // triggered on Room Icon Select
+    public void SiblingCheck (int roomNumber) {
+        int mapSize = GameManager.instance.mapSize;
+        int emptyRoomNumber = GameManager.instance.emptyRoomNumber;
+        lastMinimapDirBtn?.gameObject.SetActive(false);
+        // can be only one direction available
+        // TODO: turn gray rather then set active if possible
+        if (roomNumber - mapSize == emptyRoomNumber) {
+            minimapDirButtons[0].gameObject.SetActive(true);
+            lastMinimapDirBtn = minimapDirButtons[0];
+        } else if (roomNumber % mapSize != 0 && roomNumber - 1 == emptyRoomNumber) {
+            minimapDirButtons[1].gameObject.SetActive(true);
+            lastMinimapDirBtn = minimapDirButtons[1];
+        } else if (roomNumber % mapSize != mapSize - 1 && roomNumber + 1 == emptyRoomNumber) {
+            minimapDirButtons[2].gameObject.SetActive(true);
+            lastMinimapDirBtn = minimapDirButtons[2];
+        } else if (roomNumber + mapSize == emptyRoomNumber) {
+            minimapDirButtons[3].gameObject.SetActive(true);
+            lastMinimapDirBtn = minimapDirButtons[3];
+        } else {
+            lastMinimapDirBtn = null;
+        }
+    }
+
     /// <summary>
     /// Draw map of the dungeon on GUI minimap
     /// </summary>
     public void DrawMinimap(){
-        int mapSize = GameManager.instance.GetMapSize();
+        int mapSize = GameManager.instance.mapSize;
         RectTransform minimapRT = minimap.GetComponent<RectTransform>();
         float width = minimapRT.rect.width / mapSize;
         float height = minimapRT.rect.height / mapSize;
@@ -100,6 +135,7 @@ public class UIManager : MonoBehaviour
                     case RoomType.EmptyRoom: img.sprite = Resources.Load<Sprite>("Icons/frame");break;
                     default:break;
                 }
+                UGUIEventListener.Get(room).onClick = OnClick;
             }
         }
     }
@@ -122,11 +158,11 @@ public class UIManager : MonoBehaviour
             if (menuStack.Count == 0) {
                 HideAndActive(mainMenu);
                 // unlock cursor from the centor of screen, show cursor and lock all input(basic and melee)
-                GameObject.FindGameObjectWithTag("Player").SendMessage("LockCursor", true);
+                GameManager.instance.player.SendMessage("LockCursor", true);
                 // ↓ same idea different method
-                // GameObject.FindGameObjectWithTag("Player").GetComponent<vThirdPersonInput>().SetLockBasicInput(true);
-                GameObject.FindGameObjectWithTag("Player").SendMessage("ShowCursor", true);
-                GameObject.FindGameObjectWithTag("Player").SendMessage("SetLockAllInput", true);
+                // GameManager.instance.player.GetComponent<vThirdPersonInput>().SetLockBasicInput(true);
+                GameManager.instance.player.SendMessage("ShowCursor", true);
+                GameManager.instance.player.SendMessage("SetLockAllInput", true);
             }
             else
             {
@@ -136,9 +172,9 @@ public class UIManager : MonoBehaviour
                 else
                 {
                     // lock cursor again, hide cursor and unlock all input(basic and melee)
-                    GameObject.FindGameObjectWithTag("Player").SendMessage("LockCursor", false);
-                    GameObject.FindGameObjectWithTag("Player").SendMessage("ShowCursor", false);
-                    GameObject.FindGameObjectWithTag("Player").SendMessage("SetLockAllInput", false);
+                    GameManager.instance.player.SendMessage("LockCursor", false);
+                    GameManager.instance.player.SendMessage("ShowCursor", false);
+                    GameManager.instance.player.SendMessage("SetLockAllInput", false);
                 }
             }
         }    

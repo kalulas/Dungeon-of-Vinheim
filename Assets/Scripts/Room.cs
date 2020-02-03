@@ -22,7 +22,9 @@ public class Room : ScriptableObject
     [SerializeField]
     private int roomNumber;
     [SerializeField]
-    private RoomType roomType;
+    public RoomType roomType{ get; private set; }
+
+    // private RoomType roomType;
     [SerializeField]
     private GameObject roomExtra;
     [SerializeField]
@@ -33,7 +35,7 @@ public class Room : ScriptableObject
     private List<GameObject> obstacleList = new List<GameObject>();
     [SerializeField]
     private List<GameObject> itemList = new List<GameObject>();
-
+    
     private Vector3 GetRandomPositionInRange(List<Transform> points){
         // points:
         // | 1 - - - | 1: OuterTopLeft 
@@ -105,10 +107,6 @@ public class Room : ScriptableObject
     public bool Empty(){
         return roomType == RoomType.EmptyRoom;
     }
-    // just for debug.log(), can delete later on
-    public RoomType GetRoomType(){
-        return roomType;
-    }
 
     public void SetRoomObjectsActive(bool value){
         if (enemyList != null)
@@ -126,7 +124,7 @@ public class Room : ScriptableObject
         // iN fact the player can only enter from direction "down" or "left"
         if(value){
             if(roomType == RoomType.BossRoom){
-                float angleY = GameManager.instance.playerTransform.position == GameManager.positions[0] ? 180 : 270;
+                float angleY = GameManager.instance.player.GetComponent<Transform>().position == GameManager.positions[0] ? 180 : 270;
                 roomExtra.transform.rotation = Quaternion.Euler(0, angleY, 0);
             }
         }

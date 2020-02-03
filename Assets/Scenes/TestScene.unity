@@ -259,7 +259,7 @@ Transform:
   - {fileID: 1986629558}
   - {fileID: 865813339}
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &50484263
 GameObject:
@@ -1402,7 +1402,7 @@ PrefabInstance:
     - target: {fileID: 4117259056192013487, guid: e07a47e17e98d4c478c225cb85000e78,
         type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4117259056192013487, guid: e07a47e17e98d4c478c225cb85000e78,
         type: 3}
@@ -2588,7 +2588,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &323942674
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3969,7 +3969,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &547996920
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4633,7 +4633,7 @@ RectTransform:
   - {fileID: 1819872069}
   - {fileID: 555345433}
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -6065,7 +6065,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1068552429
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6336,7 +6336,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1211670437 stripped
 Transform:
@@ -6977,7 +6977,7 @@ Transform:
   - {fileID: 1261488137}
   - {fileID: 2052657042}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1218549981
 GameObject:
@@ -7011,6 +7011,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   exitGameButton: {fileID: 957072657}
   minimapButton: {fileID: 94252054}
+  minimapDirButtons:
+  - {fileID: 1819872070}
+  - {fileID: 547996921}
+  - {fileID: 323942675}
+  - {fileID: 1068552430}
   mainMenu: {fileID: 1921342411}
   minimap: {fileID: 555345432}
   minimapMenu: {fileID: 683336032}
@@ -7027,7 +7032,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1218549984
 MonoBehaviour:
@@ -7041,11 +7046,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42e6d9e7eb0b6204abe7a60624d4ba99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
   WaypointArea: {fileID: 49469598}
+  enemiesSpawnPointsContainer: {fileID: 288605780}
   enemiesSpawnPoints: []
   obstaclesSpawnPoints: []
-  mapSize: 5
 --- !u!1 &1231498206
 GameObject:
   m_ObjectHideFlags: 0
@@ -8445,7 +8449,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1604111315
 GameObject:
@@ -8745,7 +8749,7 @@ RectTransform:
   m_Children:
   - {fileID: 423943795}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -9092,7 +9096,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1819872069
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9476,7 +9480,7 @@ RectTransform:
   - {fileID: 94252057}
   - {fileID: 987700402}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
