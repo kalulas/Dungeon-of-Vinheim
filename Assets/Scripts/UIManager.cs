@@ -57,12 +57,12 @@ public class UIManager : MonoBehaviour
         if (go == exitGameButton.gameObject)
         {
             // TODO: PERMISSION: can add listener to CONFIRM button and invoke later
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
+// #if UNITY_EDITOR
+            // UnityEditor.EditorApplication.isPlaying = false;
+// #else
             // Application.Quit();
             PhotonNetwork.LeaveRoom();
-#endif
+// #endif
         }
         else if(go == minimapButton.gameObject){
             HideAndActive(minimapMenu);
@@ -113,7 +113,7 @@ public class UIManager : MonoBehaviour
         float height = minimapRT.rect.height / mapSize;
         float posX = - minimapRT.rect.width / 2 + width / 2;
         float posY = - minimapRT.rect.width / 2 + width / 2;
-        Debug.LogFormat("width:{0}, height:{1}, posX:{2}, posY:{3}", width, height, posX, posY);
+        // Debug.LogFormat("width:{0}, height:{1}, posX:{2}, posY:{3}", width, height, posX, posY);
         for (int i = 0; i < mapSize; i++)
         {
             for (int j = 0; j < mapSize; j++)

@@ -70,6 +70,24 @@ namespace DungeonOfVinheim
         {
             SceneManager.LoadScene(0);
         }
+
+        public override void OnPlayerEnteredRoom(Player newPlayer){
+            Debug.LogFormat("OnPlayerEnteredRoom() {0}", newPlayer.NickName); // not seen if you're the player connecting
+            if (PhotonNetwork.IsMasterClient)
+            {
+                Debug.LogFormat("OnPlayerEnteredRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
+            }
+        }
+
+        public override void OnPlayerLeftRoom(Player newPlayer)
+        {
+            Debug.LogFormat("OnPlayerLeftRoom() {0}", newPlayer.NickName); // seen when other disconnects    
+            if (PhotonNetwork.IsMasterClient)
+            {
+                Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
+            }
+        }
+
         #endregion
 
         // IF CROSS SCENE
@@ -84,10 +102,6 @@ namespace DungeonOfVinheim
             return rooms[idx].roomType;
         }
 
-        public void LeaveRoom(){
-            PhotonNetwork.LeaveRoom();
-        }
-
         // Start is called before the first frame update
         void Awake()
         {
@@ -96,7 +110,7 @@ namespace DungeonOfVinheim
 #endif
             // now game manager is attached to gameobject 'Game'
             instance = this;
-            Debug.Log("instance of 'Game Manager' generated.");
+            // Debug.Log("instance of 'Game Manager' generated.");
             currentLocation = 0;
             int roomNumber = 0;
             Room.roomsContainer = new GameObject("rooms");
@@ -148,9 +162,9 @@ namespace DungeonOfVinheim
             // initialize empty room number
             for (int i = 0; i < rooms.Count; i++)
             {
-                if (rooms[i].Empty()) { emptyRoomNumber = i; }
-                string roomtype = rooms[i].roomType.ToString();
-                Debug.Log("Room" + i + " : " + roomtype);
+                if (rooms[i].Empty()) { emptyRoomNumber = i; break; }
+                // string roomtype = rooms[i].roomType.ToString();
+                // Debug.Log("Room" + i + " : " + roomtype);
             }
 
             // Add Environment(like entrances) Trigger Listener
