@@ -5,6 +5,9 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using Invector.vCharacterController;
+using DungeonOfVinheim;
+
+using Photon.Pun;
 
 public class SetActiveEvent : UnityEvent<bool>{}
 public class SetContentEvent : UnityEvent<string, bool>{}
@@ -54,11 +57,12 @@ public class UIManager : MonoBehaviour
         if (go == exitGameButton.gameObject)
         {
             // TODO: PERMISSION: can add listener to CONFIRM button and invoke later
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
-            #else
-            Application.Quit();
-            #endif
+#else
+            // Application.Quit();
+            PhotonNetwork.LeaveRoom();
+#endif
         }
         else if(go == minimapButton.gameObject){
             HideAndActive(minimapMenu);
