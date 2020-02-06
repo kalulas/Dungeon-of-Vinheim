@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using Invector.vCharacterController;
+using Invector.vCamera;
 using DungeonOfVinheim;
 
 using Photon.Pun;
@@ -159,14 +160,14 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         if(Input.GetButtonDown("Escape")){
+            Debug.Log("MUL: Escape pressed!");
             if (menuStack.Count == 0) {
                 HideAndActive(mainMenu);
                 // unlock cursor from the centor of screen, show cursor and lock all input(basic and melee)
-                GameManager.instance.player.SendMessage("LockCursor", true);
-                // ↓ same idea different method
-                // GameManager.instance.player.GetComponent<vThirdPersonInput>().SetLockBasicInput(true);
-                GameManager.instance.player.SendMessage("ShowCursor", true);
-                GameManager.instance.player.SendMessage("SetLockAllInput", true);
+                GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().LockCursor(true);
+                GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().ShowCursor(true);
+                GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(true);
+                GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(true);
             }
             else
             {
@@ -176,9 +177,10 @@ public class UIManager : MonoBehaviour
                 else
                 {
                     // lock cursor again, hide cursor and unlock all input(basic and melee)
-                    GameManager.instance.player.SendMessage("LockCursor", false);
-                    GameManager.instance.player.SendMessage("ShowCursor", false);
-                    GameManager.instance.player.SendMessage("SetLockAllInput", false);
+                    GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().LockCursor(false);
+                    GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().ShowCursor(false);
+                    GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(false);
+                    GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(false);
                 }
             }
         }    

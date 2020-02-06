@@ -1,17 +1,39 @@
 ﻿using UnityEngine;
+using Photon.Pun;
 
 namespace Invector.vCharacterController
 {
     [vClassHeader("THIRD PERSON CONTROLLER", iconName = "controllerIcon")]
-    public class vThirdPersonController : vThirdPersonAnimator
+    public class vThirdPersonController : vThirdPersonAnimator, IPunObservable
     {
+        #region IpunObservable implementation
+
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info){
+            if(stream.IsWriting){
+                stream.SendNext(currentHealth);
+            }
+            else{
+                this.currentHealth = (float)stream.ReceiveNext();
+            }
+        }
+
+        #endregion
+
         #region Variables
 
         [vHelpBox("Check this option to transfer your character from one scene to another, uncheck if you're planning to use the controller with any kind of Multiplayer local or online")]
         public bool useInstance = true;
         public static vThirdPersonController instance;
+        [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
+        public static GameObject LocalPlayerInstance;
 
         #endregion
+        private void Awake() {
+        if (photonView.IsMine)
+            {
+                vThirdPersonController.LocalPlayerInstance = this.gameObject;
+            }
+        }
 
         protected override void Start()
         {

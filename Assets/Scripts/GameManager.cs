@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Invector;
+using Invector.vCharacterController;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
@@ -43,7 +44,8 @@ namespace DungeonOfVinheim
         new Vector3 (15.45f, 0.15f, 16.66f) //center
     };
         // the reference of player's transform component
-        public GameObject player { get; private set; }
+        // public GameObject playerPrefab;
+        public GameObject playerInstance { get; private set; }
         // public Transform playerTransform{ get; private set; }
 
         // patrol area for enemies
@@ -105,9 +107,9 @@ namespace DungeonOfVinheim
         // Start is called before the first frame update
         void Awake()
         {
-#if !UNITY_EDITOR
-        Debug.unityLogger.logEnabled = false;
-#endif
+// #if !UNITY_EDITOR
+        // Debug.unityLogger.logEnabled = false;
+// #endif
             // now game manager is attached to gameobject 'Game'
             instance = this;
             // Debug.Log("instance of 'Game Manager' generated.");
@@ -117,8 +119,12 @@ namespace DungeonOfVinheim
             defaultRoom = GameObject.Find("Default Room");
 
             // justify player position
-            player = GameObject.FindGameObjectWithTag("Player");
-            player.GetComponent<Transform>().position = positions[4];
+            // player = GameObject.FindGameObjectWithTag("Player");
+            if(vThirdPersonController.LocalPlayerInstance == null){
+                Debug.LogFormat("We are Instantiating LocalPlayer from {0}", Application.loadedLevelName);
+                playerInstance = PhotonNetwork.Instantiate("Prefabs/Players/Knight_Male_Player", positions[4], Quaternion.identity, 0);
+            }
+            // player.GetComponent<Transform>().position = positions[4];
 
             // Load Starting Room Extra (only once)
             GameObject roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Starting_Room_Extra"));
@@ -243,7 +249,7 @@ namespace DungeonOfVinheim
             {
                 // prevent from player's pressing too many times
                 entranceAvailable = false;
-                player.SendMessage("SetLockAllInput", true);
+                playerInstance.SendMessage("SetLockAllInput", true);
                 // NOTE: no TRIGGER EXIT event now so manually set action text false
                 UIManager.setActionTextActiveEvent.Invoke(false);
                 // TODO: play smoke animation & player's open door animation maybe you need to reposition the player
@@ -261,16 +267,16 @@ namespace DungeonOfVinheim
                     {
                         // check if the room is on the edge
                         case Direction.Down:
-                            player.GetComponent<Transform>().position = positions[3];
+                            playerInstance.GetComponent<Transform>().position = positions[3];
                             break;
                         case Direction.Left:
-                            player.GetComponent<Transform>().position = positions[2];
+                            playerInstance.GetComponent<Transform>().position = positions[2];
                             break;
                         case Direction.Right:
-                            player.GetComponent<Transform>().position = positions[1];
+                            playerInstance.GetComponent<Transform>().position = positions[1];
                             break;
                         case Direction.Up:
-                            player.GetComponent<Transform>().position = positions[0];
+                            playerInstance.GetComponent<Transform>().position = positions[0];
                             break;
                         default:
                             break;
@@ -290,7 +296,7 @@ namespace DungeonOfVinheim
                     state.enabled = false;
 
                     ItemTrigger.entranceFullyOpenEvent.RemoveAllListeners();
-                    player.SendMessage("SetLockAllInput", false);
+                    playerInstance.SendMessage("SetLockAllInput", false);
                     entranceAvailable = true;
                 });
             }
