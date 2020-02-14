@@ -18,8 +18,8 @@ MonoBehaviour:
     AppIdVoice: 
     AppVersion: 
     UseNameServer: 1
-    FixedRegion: 
-    Server: 
+    FixedRegion: cn
+    Server: ns.photonengine.cn
     Port: 0
     Protocol: 0
     EnableLobbyStatistics: 0
@@ -34,5 +34,6 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
+  - GetRoomsTypeList
   DisableAutoOpenWizard: 1
   ShowSettings: 1

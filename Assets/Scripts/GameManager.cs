@@ -77,7 +77,7 @@ namespace DungeonOfVinheim
             Debug.LogFormat("OnPlayerEnteredRoom() {0}", newPlayer.NickName); // not seen if you're the player connecting
             if (PhotonNetwork.IsMasterClient)
             {
-                Debug.LogFormat("OnPlayerEnteredRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
+                Debug.LogFormat("OnPlayerEnteredRoom IsMasterClient {0}", newPlayer.IsMasterClient); // called before OnPlayerLeftRoom
             }
         }
 
@@ -86,12 +86,28 @@ namespace DungeonOfVinheim
             Debug.LogFormat("OnPlayerLeftRoom() {0}", newPlayer.NickName); // seen when other disconnects    
             if (PhotonNetwork.IsMasterClient)
             {
-                Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
+                Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", newPlayer.IsMasterClient); // called before OnPlayerLeftRoom
             }
         }
 
         #endregion
-
+        [PunRPC]
+        public void GetRoomsTypeList(int[] roomtypes){
+            // RoomType[] roomtypes = new RoomType[mapSize * mapSize];
+            for (int i = 0; i < mapSize*mapSize; i++)
+            {
+                switch (rooms[i].roomType)
+                {
+                    case RoomType.EmptyRoom:roomtypes[i] = 0; break;
+                    case RoomType.StartingRoom:roomtypes[i] = 1;break;
+                    case RoomType.BattleRoom:roomtypes[i] = 2;break;
+                    case RoomType.RewardRoom:roomtypes[i] = 3;break;
+                    case RoomType.BossRoom:roomtypes[i] = 4;break;
+                    default: break;
+                }
+                Debug.Log("set roomtype " + i + " to " + roomtypes[i]);
+            }
+        }
         // IF CROSS SCENE
         // static GameManager(){
         //     GameObject gm = new GameObject("#GameManager#");
@@ -107,9 +123,6 @@ namespace DungeonOfVinheim
         // Start is called before the first frame update
         void Awake()
         {
-// #if !UNITY_EDITOR
-        // Debug.unityLogger.logEnabled = false;
-// #endif
             // now game manager is attached to gameobject 'Game'
             instance = this;
             // Debug.Log("instance of 'Game Manager' generated.");
@@ -127,43 +140,94 @@ namespace DungeonOfVinheim
             // player.GetComponent<Transform>().position = positions[4];
 
             // Load Starting Room Extra (only once)
-            GameObject roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Starting_Room_Extra"));
-            rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.StartingRoom, roomExtra));
-            // Build Default Nav Mesh
-            defaultRoom.GetComponent<NavMeshSurface>().BuildNavMesh();
+            // GameObject roomExtra;
+            // if(PhotonNetwork.IsMasterClient){
+            //     roomExtra = PhotonNetwork.Instantiate("Prefabs/RoomExtras/Starting_Room_Extra", new Vector3(0, 0, 0), Quaternion.identity, 0);
+            // }
+            // else{
+            //     roomExtra = GameObject.Find("Starting_Room_Extra(Clone)");
+            // }
+            if(PhotonNetwork.IsMasterClient){
 
-            // Load Empty Room
-            rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.EmptyRoom));
+                GameObject roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Starting_Room_Extra"));
+                rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.StartingRoom, roomExtra));
+                // Build Default Nav Mesh
+                defaultRoom.GetComponent<NavMeshSurface>().BuildNavMesh();
 
-            // Load Reward Room Prefab once and set active false to hide it
-            roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Reward_Room_Extra"));
-            roomExtra.SetActive(false);
-            // Add Reward Rooms with the prefab but different items
-            for (int index = 0; index < mapSize * mapSize / 4; index++)
-            {
-                rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.RewardRoom, roomExtra));
+                // Load Empty Room
+                rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.EmptyRoom));
+
+                // Load Reward Room Prefab once and set active false to hide it
+                roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Reward_Room_Extra"));
+                roomExtra.SetActive(false);
+                // Add Reward Rooms with the prefab but different items
+                for (int index = 0; index < mapSize * mapSize / 4; index++)
+                {
+                    rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.RewardRoom, roomExtra));
+                }
+
+                // Load Battle Room Prefab and add Rooms
+                enemiesSpawnPoints.Shuffle(0, enemiesSpawnPoints.Count);
+                roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Battle_Room_Extra"));
+
+                enemiesSpawnPointsContainer.GetComponentsInChildren<Transform>(true, enemiesSpawnPoints);
+                GameObject randomObstacles = GameObject.Find("Random Obstacles");
+                randomObstacles.GetComponentsInChildren<Transform>(true, obstaclesSpawnPoints);
+                // Add Battle Rooms with the prefab but different items
+                while (rooms.Count != mapSize * mapSize - 1)
+                {
+                    rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BattleRoom, roomExtra));
+                }
+                roomExtra.SetActive(false);
+
+                // Load Boss Room Prefab and add Room
+                roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Boss_Room_Extra"));
+                roomExtra.SetActive(false);
+                rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BossRoom, roomExtra));
+                // Randomizing the mapSize * mapSize dungeon
+                rooms.Shuffle(1, mapSize * mapSize - 1);
             }
+            else{
+                PhotonView photonView = PhotonView.Get(this);
+                int[] roomtypes = new int[mapSize * mapSize];
+                photonView.RPC("GetRoomsTypeList", RpcTarget.MasterClient, roomtypes);
 
-            // Load Battle Room Prefab and add Rooms
-            enemiesSpawnPoints.Shuffle(0, enemiesSpawnPoints.Count);
-            roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Battle_Room_Extra"));
+                GameObject startingRoomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Starting_Room_Extra"));
+                GameObject rewardRoomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Reward_Room_Extra"));
+                GameObject battleRoomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Battle_Room_Extra"));
+                GameObject bossRoomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Boss_Room_Extra"));
 
-            enemiesSpawnPointsContainer.GetComponentsInChildren<Transform>(true, enemiesSpawnPoints);
-            GameObject randomObstacles = GameObject.Find("Random Obstacles");
-            randomObstacles.GetComponentsInChildren<Transform>(true, obstaclesSpawnPoints);
-            // Add Battle Rooms with the prefab but different items
-            while (rooms.Count != mapSize * mapSize - 1)
-            {
-                rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BattleRoom, roomExtra));
+                for (int i = 0; i < mapSize * mapSize; i++)
+                {
+                    switch (roomtypes[i])
+                    {
+                        case 0:
+                        rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.EmptyRoom));
+                        break;
+                        case 1:
+                        rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.StartingRoom, startingRoomExtra));
+                        defaultRoom.GetComponent<NavMeshSurface>().BuildNavMesh();
+                        break;
+                        case 2:
+                        enemiesSpawnPoints.Shuffle(0, enemiesSpawnPoints.Count);
+                        enemiesSpawnPointsContainer.GetComponentsInChildren<Transform>(true, enemiesSpawnPoints);
+                        GameObject randomObstacles = GameObject.Find("Random Obstacles");
+                        randomObstacles.GetComponentsInChildren<Transform>(true, obstaclesSpawnPoints);
+                        rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BattleRoom, battleRoomExtra));
+                        break;
+                        case 3:
+                        rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BattleRoom, rewardRoomExtra));
+                        break;
+                        case 4:
+                        rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BattleRoom, bossRoomExtra));
+                        break;
+                        default:break;
+                    }
+                }
+                battleRoomExtra.SetActive(false);
+                rewardRoomExtra.SetActive(false);
+                bossRoomExtra.SetActive(false);
             }
-            roomExtra.SetActive(false);
-
-            // Load Boss Room Prefab and add Room
-            roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Boss_Room_Extra"));
-            roomExtra.SetActive(false);
-            rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BossRoom, roomExtra));
-            // Randomizing the mapSize * mapSize dungeon
-            rooms.Shuffle(1, mapSize * mapSize - 1);
 
             // initialize empty room number
             for (int i = 0; i < rooms.Count; i++)
