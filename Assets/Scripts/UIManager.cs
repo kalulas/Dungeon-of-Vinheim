@@ -40,7 +40,7 @@ public class UIManager : MonoBehaviour
         minimapButton.onClick.AddListener(delegate (){
             OnClick(minimapButton.gameObject);
         });
-        DrawMinimap();
+        // DrawMinimap();
         // use GUI to show information and ask for permission
         // information depens on event's message
         setActionTextActiveEvent.AddListener(delegate (bool value)
@@ -58,12 +58,7 @@ public class UIManager : MonoBehaviour
         if (go == exitGameButton.gameObject)
         {
             // TODO: PERMISSION: can add listener to CONFIRM button and invoke later
-// #if UNITY_EDITOR
-            // UnityEditor.EditorApplication.isPlaying = false;
-// #else
-            // Application.Quit();
             PhotonNetwork.LeaveRoom();
-// #endif
         }
         else if(go == minimapButton.gameObject){
             HideAndActive(minimapMenu);

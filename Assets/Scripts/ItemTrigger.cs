@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using Photon.Pun;
+using DungeonOfVinheim;
 
 // might contiains other triggers later on like items or monsters...?
 public enum TriggerEventType{
@@ -24,7 +26,7 @@ public class TriggerEvent : UnityEvent<Collider, GameObject>{
     public Direction direction;
 }
 
-public class ItemTrigger : MonoBehaviour
+public class ItemTrigger : MonoBehaviourPun
 {
     // Trigger Event will now bring the information of the entrance
     public TriggerEventType type;
@@ -44,7 +46,7 @@ public class ItemTrigger : MonoBehaviour
     }
     
     void OnTriggerEnter(Collider collider){
-        if (collider.gameObject.tag == "Player")
+        if (collider.gameObject == GameManager.instance.playerInstance)
         {
             UIManager.setActionTextContentEvent.Invoke(message, prefix);
             UIManager.setActionTextActiveEvent.Invoke(true);
@@ -52,14 +54,14 @@ public class ItemTrigger : MonoBehaviour
     }
 
     void OnTriggerExit(Collider collider){
-        if (collider.gameObject.tag == "Player")
+        if (collider.gameObject == GameManager.instance.playerInstance)
         {
             UIManager.setActionTextActiveEvent.Invoke(false);
         }
     }
     
     void OnTriggerStay(Collider collider){
-        if(collider.gameObject.tag == "Player"){
+        if(collider.gameObject == GameManager.instance.playerInstance){
             if(type == TriggerEventType.Entrance) triggerEventStay.direction = direction;
             triggerEventStay.type = type;
             triggerEventStay.Invoke(collider, this.gameObject);
