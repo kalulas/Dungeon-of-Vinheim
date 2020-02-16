@@ -5,6 +5,10 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using Invector.vCharacterController;
+using Invector.vCamera;
+using DungeonOfVinheim;
+
+using Photon.Pun;
 
 public class SetActiveEvent : UnityEvent<bool>{}
 public class SetContentEvent : UnityEvent<string, bool>{}
@@ -36,7 +40,7 @@ public class UIManager : MonoBehaviour
         minimapButton.onClick.AddListener(delegate (){
             OnClick(minimapButton.gameObject);
         });
-        DrawMinimap();
+        // DrawMinimap();
         // use GUI to show information and ask for permission
         // information depens on event's message
         setActionTextActiveEvent.AddListener(delegate (bool value)
@@ -54,11 +58,7 @@ public class UIManager : MonoBehaviour
         if (go == exitGameButton.gameObject)
         {
             // TODO: PERMISSION: can add listener to CONFIRM button and invoke later
-            #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-            #else
-            Application.Quit();
-            #endif
+            PhotonNetwork.LeaveRoom();
         }
         else if(go == minimapButton.gameObject){
             HideAndActive(minimapMenu);
@@ -109,7 +109,7 @@ public class UIManager : MonoBehaviour
         float height = minimapRT.rect.height / mapSize;
         float posX = - minimapRT.rect.width / 2 + width / 2;
         float posY = - minimapRT.rect.width / 2 + width / 2;
-        Debug.LogFormat("width:{0}, height:{1}, posX:{2}, posY:{3}", width, height, posX, posY);
+        // Debug.LogFormat("width:{0}, height:{1}, posX:{2}, posY:{3}", width, height, posX, posY);
         for (int i = 0; i < mapSize; i++)
         {
             for (int j = 0; j < mapSize; j++)
@@ -155,14 +155,14 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         if(Input.GetButtonDown("Escape")){
+            Debug.Log("MUL: Escape pressed!");
             if (menuStack.Count == 0) {
                 HideAndActive(mainMenu);
                 // unlock cursor from the centor of screen, show cursor and lock all input(basic and melee)
-                GameManager.instance.player.SendMessage("LockCursor", true);
-                // ↓ same idea different method
-                // GameManager.instance.player.GetComponent<vThirdPersonInput>().SetLockBasicInput(true);
-                GameManager.instance.player.SendMessage("ShowCursor", true);
-                GameManager.instance.player.SendMessage("SetLockAllInput", true);
+                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().LockCursor(true);
+                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().ShowCursor(true);
+                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(true);
+                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(true);
             }
             else
             {
@@ -172,9 +172,10 @@ public class UIManager : MonoBehaviour
                 else
                 {
                     // lock cursor again, hide cursor and unlock all input(basic and melee)
-                    GameManager.instance.player.SendMessage("LockCursor", false);
-                    GameManager.instance.player.SendMessage("ShowCursor", false);
-                    GameManager.instance.player.SendMessage("SetLockAllInput", false);
+                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().LockCursor(false);
+                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().ShowCursor(false);
+                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(false);
+                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(false);
                 }
             }
         }    

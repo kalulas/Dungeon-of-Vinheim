@@ -179,7 +179,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2434294079646024682}
   m_Layer: 0
-  m_Name: Boss Room Extra
+  m_Name: Boss_Room_Extra
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

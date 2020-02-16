@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using UnityEngine;
 
+using Photon.Pun;
+
 namespace Invector.vCharacterController
 {
     [vClassHeader("Input Manager", iconName = "inputIcon")]
@@ -94,7 +96,7 @@ namespace Invector.vCharacterController
             if (tpCamera == null)
             {
                 tpCamera = FindObjectOfType<vCamera.vThirdPersonCamera>();
-                if (tpCamera && tpCamera.target != transform) tpCamera.SetMainTarget(this.transform);
+                if (tpCamera && tpCamera.target != transform && photonView.IsMine) tpCamera.SetMainTarget(this.transform);
             }
             if (hud == null && vHUDController.instance != null)
             {
@@ -106,7 +108,8 @@ namespace Invector.vCharacterController
         #endregion
 
         protected virtual void LateUpdate()
-        {            
+        {   
+            if (photonView.IsMine == false && PhotonNetwork.IsConnected == true ) return;
             if (cc == null || Time.timeScale == 0) return;           
             if (!updateIK) return;
             if (onLateUpdate != null) onLateUpdate.Invoke();
@@ -118,6 +121,7 @@ namespace Invector.vCharacterController
 
         protected virtual void FixedUpdate()
         {
+            if (photonView.IsMine == false && PhotonNetwork.IsConnected == true ) return;
             if (onFixedUpdate != null) onFixedUpdate.Invoke();
 
             cc.UpdateMotor();                                                             // handle the ThirdPersonMotor methods            
@@ -128,7 +132,8 @@ namespace Invector.vCharacterController
         }
 
         protected virtual void Update()
-        {            
+        {
+            if (photonView.IsMine == false && PhotonNetwork.IsConnected == true ) return;            
             if (cc == null || Time.timeScale == 0) return;
             if (onUpdate != null) onUpdate.Invoke();
 

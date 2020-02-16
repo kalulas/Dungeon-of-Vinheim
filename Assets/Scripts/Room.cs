@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Invector.vCharacterController.AI;
+using DungeonOfVinheim;
 
 public enum RoomType
 {
@@ -124,7 +125,7 @@ public class Room : ScriptableObject
         // iN fact the player can only enter from direction "down" or "left"
         if(value){
             if(roomType == RoomType.BossRoom){
-                float angleY = GameManager.instance.player.GetComponent<Transform>().position == GameManager.positions[0] ? 180 : 270;
+                float angleY = GameManager.localPlayerInstance.GetComponent<Transform>().position == GameManager.positions[0] ? 180 : 270;
                 roomExtra.transform.rotation = Quaternion.Euler(0, angleY, 0);
             }
         }

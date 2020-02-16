@@ -1,8 +1,11 @@
 ﻿using UnityEngine;
 
+using Photon.Pun;
+
 namespace Invector
 {
-    public  class vMonoBehaviour : MonoBehaviour
+    // EDIT FROM MonoBehaviour to MonoBeahaviourPun
+    public  class vMonoBehaviour : MonoBehaviourPunCallbacks
     {
         [SerializeField, HideInInspector]
         private bool openCloseEvents ;

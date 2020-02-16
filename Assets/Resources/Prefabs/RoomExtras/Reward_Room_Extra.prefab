@@ -75,7 +75,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2329330499380033195}
   m_Layer: 0
-  m_Name: Reward Room Extra
+  m_Name: Reward_Room_Extra
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -27,7 +27,7 @@ namespace Invector.vCharacterController.AI
 
         protected override void Start()
         {
-            Debug.Log("AI Start()");
+            // Debug.Log("AI Start()");
             base.Start();
             ignorePatrolTimer = -1f;
             moveToDestination = transform.position;
