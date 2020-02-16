@@ -159,10 +159,10 @@ public class UIManager : MonoBehaviour
             if (menuStack.Count == 0) {
                 HideAndActive(mainMenu);
                 // unlock cursor from the centor of screen, show cursor and lock all input(basic and melee)
-                GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().LockCursor(true);
-                GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().ShowCursor(true);
-                GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(true);
-                GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(true);
+                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().LockCursor(true);
+                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().ShowCursor(true);
+                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(true);
+                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(true);
             }
             else
             {
@@ -172,10 +172,10 @@ public class UIManager : MonoBehaviour
                 else
                 {
                     // lock cursor again, hide cursor and unlock all input(basic and melee)
-                    GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().LockCursor(false);
-                    GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().ShowCursor(false);
-                    GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(false);
-                    GameManager.instance.playerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(false);
+                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().LockCursor(false);
+                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().ShowCursor(false);
+                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(false);
+                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(false);
                 }
             }
         }    

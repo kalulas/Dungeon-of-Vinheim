@@ -46,7 +46,7 @@ public class ItemTrigger : MonoBehaviourPun
     }
     
     void OnTriggerEnter(Collider collider){
-        if (collider.gameObject == GameManager.instance.playerInstance)
+        if (collider.gameObject == GameManager.localPlayerInstance)
         {
             UIManager.setActionTextContentEvent.Invoke(message, prefix);
             UIManager.setActionTextActiveEvent.Invoke(true);
@@ -54,14 +54,14 @@ public class ItemTrigger : MonoBehaviourPun
     }
 
     void OnTriggerExit(Collider collider){
-        if (collider.gameObject == GameManager.instance.playerInstance)
+        if (collider.gameObject == GameManager.localPlayerInstance)
         {
             UIManager.setActionTextActiveEvent.Invoke(false);
         }
     }
     
     void OnTriggerStay(Collider collider){
-        if(collider.gameObject == GameManager.instance.playerInstance){
+        if(collider.gameObject == GameManager.localPlayerInstance){
             if(type == TriggerEventType.Entrance) triggerEventStay.direction = direction;
             triggerEventStay.type = type;
             triggerEventStay.Invoke(collider, this.gameObject);

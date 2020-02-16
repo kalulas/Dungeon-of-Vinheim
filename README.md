@@ -85,7 +85,15 @@
 
 锁定区域Region为cn，唯一访问国内的光子服务器ns.photonengine.cn，appID现已解锁国内区域
 
+PhotonNetwork.Instantiate仅创建一次的方式或许可行
 
+**隐藏显示玩家逻辑：**当玩家与门交互后，修改该游戏对象“所在房间”属性，用RaiseEvent？把这个房间号发给所有玩家，更新其他玩家这个游戏对象的房间号，之后调用GameManager的方法，检查其他玩家游戏对象的房间号是否与localplayer的房间号一致（可能得做一个保存其他玩家的GameObject列表）进行对应的隐藏显示
+
+直接用PhotonNetwork.LocalPlayer.SetCustomProperties？
+
+然后甚至可以直接update检查，不错
+
+**地图同步逻辑：**好像可以用PhotonNetwork.CurrentRoom.SetCustomProperties实现看看
 
 
 

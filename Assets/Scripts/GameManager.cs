@@ -8,7 +8,6 @@ using UnityEngine.SceneManagement;
 
 using Photon.Pun;
 using Photon.Realtime;
-using ExitGames.Client.Photon;
 
 public static class IListExtensions
 {
@@ -30,6 +29,8 @@ public static class IListExtensions
 }
 namespace DungeonOfVinheim
 {
+    using ExitGames.Client.Photon;
+    // using ExitGames.Client.Photon;
     // 单例脚本管理地图信息并进行关卡切换
     public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
@@ -44,10 +45,10 @@ namespace DungeonOfVinheim
         new Vector3 (15.36f, 0.15f, 33.23f), // up
         new Vector3 (15.45f, 0.15f, 16.66f) //center
     };
-        // the reference of player's transform component
-        // public GameObject playerPrefab;
-        public GameObject playerInstance { get; private set; }
-        // public Transform playerTransform{ get; private set; }
+        // the same as original vThirdPersonController.LocalPlayerInstance
+        [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
+        public static GameObject localPlayerInstance;
+        public List<GameObject> otherPlayers = new List<GameObject>();
 
         // patrol area for enemies
         public GameObject WaypointArea;
@@ -59,13 +60,15 @@ namespace DungeonOfVinheim
 
         public int mapSize { get; private set; } = 5;
         public int emptyRoomNumber { get; private set; }
-        public int currentLocation { get; private set; }
+        public int roomNumberLocal { get; private set; }
         private bool entranceAvailable = true;
         // basic environment for all rooms
         private GameObject defaultRoom;
         private List<Room> rooms = new List<Room>();
 
-        private const byte UpdateNewPlayerMapEvent = 1;
+        private const byte UpdateNewPlayerMapEvent = 0;
+        /// <summary>raised when other player (not you) has entered a new room</summary>
+        private const byte UpdatePlayerLocationEvent = 1;
 
         #region Photon Callbacks
         /// <summary>
@@ -81,7 +84,7 @@ namespace DungeonOfVinheim
             // TODO: raise sending dungeon data event here
             if (PhotonNetwork.IsMasterClient)
             {
-                Debug.LogFormat("OnPlayerEnteredRoom IsMasterClient {0} update his map", newPlayer.IsMasterClient); // called before OnPlayerLeftRoom
+                Debug.LogFormat("OnPlayerEnteredRoom(): update {0}'s map", newPlayer); // called before OnPlayerLeftRoom
                 object[] content = new object[mapSize * mapSize];
                 for (int i = 0; i < mapSize*mapSize; i++)
                 {
@@ -113,6 +116,21 @@ namespace DungeonOfVinheim
             {
                 Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", newPlayer.IsMasterClient); // called before OnPlayerLeftRoom
             }
+        }
+
+        // NOTE: player's properties change event can only caught by the same photonview
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps){
+            // Debug.Log("OnPlayerPropertiesUpdate()");
+            foreach (GameObject player in otherPlayers)
+            {
+                if(targetPlayer == player.GetComponent<PhotonView>().Owner){
+                    ExitGames.Client.Photon.Hashtable userProperty = targetPlayer.CustomProperties;
+                    int roomNumber = (int)userProperty["roomNumber"];
+                    Debug.LogFormat("OnPlayerPropertiesUpdate() Player {0} has entered room {1}",targetPlayer, roomNumber);
+                    player.SetActive(roomNumber == roomNumberLocal);
+                }
+            }
+            
         }
 
         #endregion
@@ -182,10 +200,16 @@ namespace DungeonOfVinheim
             UIManager.instance.DrawMinimap();
             
              // load & justify player position
-            if(vThirdPersonController.LocalPlayerInstance == null){
+            if(localPlayerInstance == null){
                 Debug.LogFormat("We are Instantiating LocalPlayer from {0}", Application.loadedLevelName);
-                playerInstance = PhotonNetwork.Instantiate("Prefabs/Players/Knight_Male_Player", positions[4], Quaternion.identity, 0);
+                localPlayerInstance = PhotonNetwork.Instantiate("Prefabs/Players/Knight_Male_Player", positions[4], Quaternion.identity, 0);
             }
+            // let others devices disactive me
+            Hashtable userProperty = new Hashtable();
+            userProperty["roomNumber"] = roomNumberLocal;
+            PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
+            // disactive others
+            DisplayPlayersInCurrentRoom();
         }
 
         // Start is called before the first frame update
@@ -194,19 +218,12 @@ namespace DungeonOfVinheim
             // now game manager is attached to gameobject 'Game'
             instance = this;
             // Debug.Log("instance of 'Game Manager' generated.");
-            currentLocation = 0;
+            roomNumberLocal = 0;
             int roomNumber = 0;
             Room.roomsContainer = new GameObject("rooms");
             defaultRoom = GameObject.Find("Default Room");
 
-            // Load Starting Room Extra (only once)
             // GameObject roomExtra;
-            // if(PhotonNetwork.IsMasterClient){
-            //     roomExtra = PhotonNetwork.Instantiate("Prefabs/RoomExtras/Starting_Room_Extra", new Vector3(0, 0, 0), Quaternion.identity, 0);
-            // }
-            // else{
-            //     roomExtra = GameObject.Find("Starting_Room_Extra(Clone)");
-            // }
             if(PhotonNetwork.IsMasterClient){
 
                 GameObject roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Starting_Room_Extra"));
@@ -256,10 +273,14 @@ namespace DungeonOfVinheim
                 UIManager.instance.DrawMinimap();
 
                  // load & justify player position
-                if(vThirdPersonController.LocalPlayerInstance == null){
+                if(localPlayerInstance == null){
                     Debug.LogFormat("We are Instantiating LocalPlayer from {0}", Application.loadedLevelName);
-                    playerInstance = PhotonNetwork.Instantiate("Prefabs/Players/Knight_Male_Player", positions[4], Quaternion.identity, 0);
+                    localPlayerInstance = PhotonNetwork.Instantiate("Prefabs/Players/Knight_Male_Player", positions[4], Quaternion.identity, 0);
                 }
+
+                Hashtable userProperty = new Hashtable();
+                userProperty["roomNumber"] = roomNumberLocal;
+                PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
             }
 
             // Add Environment(like entrances) Trigger Listener
@@ -290,6 +311,17 @@ namespace DungeonOfVinheim
             emptyRoomNumber = roomNumber;
         }
 
+        /// <summary>display players in current room and hide those are not</summary>
+        private void DisplayPlayersInCurrentRoom(){
+            foreach (GameObject player in otherPlayers)
+            {
+                if(player){
+                    Hashtable ht = player.GetComponent<PhotonView>().Owner.CustomProperties;
+                    player.SetActive((int)ht["roomNumber"] == roomNumberLocal);
+                }
+            }
+        }
+
         /// <summary>
         /// some points in waypoint area might not be available because of the randomly generated obstacles
         /// so check every point in the area and reset their variables
@@ -313,22 +345,22 @@ namespace DungeonOfVinheim
             {
                 // check if the room is on the edge
                 case Direction.Down:
-                    pace = currentLocation / mapSize == 0 ? 0 : -mapSize;
+                    pace = roomNumberLocal / mapSize == 0 ? 0 : -mapSize;
                     break;
                 case Direction.Left:
-                    pace = currentLocation % mapSize == 0 ? 0 : -1;
+                    pace = roomNumberLocal % mapSize == 0 ? 0 : -1;
                     break;
                 case Direction.Right:
-                    pace = currentLocation % mapSize == mapSize - 1 ? 0 : 1;
+                    pace = roomNumberLocal % mapSize == mapSize - 1 ? 0 : 1;
                     break;
                 case Direction.Up:
-                    pace = currentLocation / mapSize == mapSize - 1 ? 0 : mapSize;
+                    pace = roomNumberLocal / mapSize == mapSize - 1 ? 0 : mapSize;
                     break;
                 default:
                     pace = 0;
                     break;
             }
-            if (pace == 0 || rooms[currentLocation + pace].Empty())
+            if (pace == 0 || rooms[roomNumberLocal + pace].Empty())
             {
                 Debug.Log("BLOCKED");
                 // notify player that no room ahead, also no need for prefix "press e to"
@@ -338,7 +370,7 @@ namespace DungeonOfVinheim
             {
                 // prevent from player's pressing too many times
                 entranceAvailable = false;
-                playerInstance.SendMessage("SetLockAllInput", true);
+                localPlayerInstance.SendMessage("SetLockAllInput", true);
                 // NOTE: no TRIGGER EXIT event now so manually set action text false
                 UIManager.setActionTextActiveEvent.Invoke(false);
                 // TODO: play smoke animation & player's open door animation maybe you need to reposition the player
@@ -347,36 +379,46 @@ namespace DungeonOfVinheim
                 // wait until the entrance is fully open
                 ItemTrigger.entranceFullyOpenEvent.AddListener(delegate ()
                 {
-                    rooms[currentLocation].SetRoomEnvActive(false);
-                    rooms[currentLocation].SetRoomObjectsActive(false);
+                    rooms[roomNumberLocal].SetRoomEnvActive(false);
+                    rooms[roomNumberLocal].SetRoomObjectsActive(false);
                     // update currentLocation
-                    currentLocation += pace;
+                    roomNumberLocal += pace;
+
                     // change player's position (Tranform component)
                     switch (direction)
                     {
                         // check if the room is on the edge
                         case Direction.Down:
-                            playerInstance.GetComponent<Transform>().position = positions[3];
+                            localPlayerInstance.GetComponent<Transform>().position = positions[3];
                             break;
                         case Direction.Left:
-                            playerInstance.GetComponent<Transform>().position = positions[2];
+                            localPlayerInstance.GetComponent<Transform>().position = positions[2];
                             break;
                         case Direction.Right:
-                            playerInstance.GetComponent<Transform>().position = positions[1];
+                            localPlayerInstance.GetComponent<Transform>().position = positions[1];
                             break;
                         case Direction.Up:
-                            playerInstance.GetComponent<Transform>().position = positions[0];
+                            localPlayerInstance.GetComponent<Transform>().position = positions[0];
                             break;
                         default:
                             break;
                     }
-                    rooms[currentLocation].SetRoomEnvActive(true);
+                    // check otherplayers' roomNumber before the new room activated
+                    // DisplayPlayersInCurrentRoom();
+
+                    rooms[roomNumberLocal].SetRoomEnvActive(true);
                     // Rebuild Nav Mesh
                     GameObject.Find("Default Room").GetComponent<NavMeshSurface>().BuildNavMesh();
                     // Validation of waypoints and patrol points after rebuilt
                     WaypointsValidation();
-                    rooms[currentLocation].SetRoomObjectsActive(true);
-                    Debug.Log("Direction " + direction + ": Room" + (currentLocation - pace) + " --> Room" + currentLocation);
+                    rooms[roomNumberLocal].SetRoomObjectsActive(true);
+                    Debug.Log("Direction " + direction + ": Room" + (roomNumberLocal - pace) + " --> Room" + roomNumberLocal);
+
+                    // set properties to update localplayer's gameobject in other devices
+                    Hashtable userProperty = new Hashtable();
+                    userProperty["roomNumber"] = roomNumberLocal;
+                    PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
+                    DisplayPlayersInCurrentRoom();
 
                     // reset the entrance's animation
                     AnimationState state = ani["DoorOpen"];
@@ -385,7 +427,7 @@ namespace DungeonOfVinheim
                     state.enabled = false;
 
                     ItemTrigger.entranceFullyOpenEvent.RemoveAllListeners();
-                    playerInstance.SendMessage("SetLockAllInput", false);
+                    localPlayerInstance.SendMessage("SetLockAllInput", false);
                     entranceAvailable = true;
                 });
             }

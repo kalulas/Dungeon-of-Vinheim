@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Photon.Pun;
+using DungeonOfVinheim;
 
 namespace Invector.vCharacterController
 {
@@ -24,15 +25,26 @@ namespace Invector.vCharacterController
         [vHelpBox("Check this option to transfer your character from one scene to another, uncheck if you're planning to use the controller with any kind of Multiplayer local or online")]
         public bool useInstance = true;
         public static vThirdPersonController instance;
-        [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
-        public static GameObject LocalPlayerInstance;
+        // [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
+        public int roomNumber;
 
         #endregion
         private void Awake() {
-        if (photonView.IsMine)
+            if (photonView.IsMine)
             {
-                vThirdPersonController.LocalPlayerInstance = this.gameObject;
+                // in fact unnecessary just in case
+                if(GameManager.localPlayerInstance == null)
+                GameManager.localPlayerInstance = this.gameObject;
             }
+            else{
+                Debug.Log("Add new player in other Players");
+                GameManager.instance.otherPlayers.Add(this.gameObject);
+            }
+
+        }
+
+        private void OnDestroy() {
+            GameManager.instance.otherPlayers.Remove(this.gameObject);
         }
 
         protected override void Start()

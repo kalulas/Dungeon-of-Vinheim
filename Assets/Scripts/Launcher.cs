@@ -93,6 +93,10 @@ namespace DungeonOfVinheim{
             }
         }
 
+        public void Exit(){
+            Application.Quit();
+        }
+
     }
 }
 
