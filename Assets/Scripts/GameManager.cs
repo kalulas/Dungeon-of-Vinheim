@@ -66,10 +66,6 @@ namespace DungeonOfVinheim
         private GameObject defaultRoom;
         private List<Room> rooms = new List<Room>();
 
-        private const byte UpdateNewPlayerMapEvent = 0;
-        /// <summary>raised when other player (not you) has entered a new room</summary>
-        private const byte UpdatePlayerLocationEvent = 1;
-
         #region Photon Callbacks
         /// <summary>
         /// Called when the local player left the room. We need to load the launcher scene.
@@ -81,18 +77,9 @@ namespace DungeonOfVinheim
 
         public override void OnPlayerEnteredRoom(Player newPlayer){
             Debug.LogFormat("OnPlayerEnteredRoom() {0}", newPlayer.NickName); // not seen if you're the player connecting
-            // TODO: raise sending dungeon data event here
             if (PhotonNetwork.IsMasterClient)
             {
                 Debug.LogFormat("OnPlayerEnteredRoom(): update {0}'s map", newPlayer); // called before OnPlayerLeftRoom
-                object[] content = new object[mapSize * mapSize];
-                for (int i = 0; i < mapSize*mapSize; i++)
-                {
-                    content[i] = rooms[i].roomType;
-                } 
-                RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.Others }; 
-                SendOptions sendOptions = new SendOptions { Reliability = true };
-                PhotonNetwork.RaiseEvent(UpdateNewPlayerMapEvent, content, raiseEventOptions, sendOptions);
             }
         }
 
@@ -101,10 +88,6 @@ namespace DungeonOfVinheim
             byte eventCode = photonEvent.Code;
             switch (eventCode)
             {
-                case UpdateNewPlayerMapEvent:
-                    object[] data = (object[])photonEvent.CustomData;
-                    UpdateNewPlayerMap(data);
-                    break;
                 default: break;
             }
         }
@@ -125,6 +108,7 @@ namespace DungeonOfVinheim
             {
                 if(targetPlayer == player.GetComponent<PhotonView>().Owner){
                     ExitGames.Client.Photon.Hashtable userProperty = targetPlayer.CustomProperties;
+                    // [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
                     int roomNumber = (int)userProperty["roomNumber"];
                     Debug.LogFormat("OnPlayerPropertiesUpdate() Player {0} has entered room {1}",targetPlayer, roomNumber);
                     player.SetActive(roomNumber == roomNumberLocal);
@@ -204,83 +188,38 @@ namespace DungeonOfVinheim
                 Debug.LogFormat("We are Instantiating LocalPlayer from {0}", Application.loadedLevelName);
                 localPlayerInstance = PhotonNetwork.Instantiate("Prefabs/Players/Knight_Male_Player", positions[4], Quaternion.identity, 0);
             }
+
             // let others devices disactive me
             Hashtable userProperty = new Hashtable();
             userProperty["roomNumber"] = roomNumberLocal;
             PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
             // disactive others
             DisplayPlayersInCurrentRoom();
+
         }
 
         // Start is called before the first frame update
         void Awake()
         {
+            object[] roomtypes = new object[mapSize * mapSize];
             // now game manager is attached to gameobject 'Game'
             instance = this;
             // Debug.Log("instance of 'Game Manager' generated.");
             roomNumberLocal = 0;
-            int roomNumber = 0;
-            Room.roomsContainer = new GameObject("rooms");
-            defaultRoom = GameObject.Find("Default Room");
 
-            // GameObject roomExtra;
-            if(PhotonNetwork.IsMasterClient){
+            if (PhotonNetwork.IsMasterClient)
+            {
+                int index = 0;
+                roomtypes[index++] = RoomType.StartingRoom;
+                roomtypes[index++] = RoomType.EmptyRoom;
+                for (; index < mapSize * mapSize / 4 + 2;) roomtypes[index++] = RoomType.RewardRoom;
+                while (index != mapSize * mapSize - 1) roomtypes[index++] = RoomType.BattleRoom;
+                roomtypes[index] = RoomType.BossRoom;
+                roomtypes.Shuffle(1, mapSize * mapSize - 1);
 
-                GameObject roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Starting_Room_Extra"));
-                rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.StartingRoom, roomExtra));
-                // Build Default Nav Mesh
-                defaultRoom.GetComponent<NavMeshSurface>().BuildNavMesh();
-
-                // Load Empty Room
-                rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.EmptyRoom));
-
-                // Load Reward Room Prefab once and set active false to hide it
-                roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Reward_Room_Extra"));
-                roomExtra.SetActive(false);
-                // Add Reward Rooms with the prefab but different items
-                for (int index = 0; index < mapSize * mapSize / 4; index++)
-                {
-                    rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.RewardRoom, roomExtra));
-                }
-
-                // Load Battle Room Prefab and add Rooms
-                enemiesSpawnPoints.Shuffle(0, enemiesSpawnPoints.Count);
-                roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Battle_Room_Extra"));
-
-                enemiesSpawnPointsContainer.GetComponentsInChildren<Transform>(true, enemiesSpawnPoints);
-                GameObject randomObstacles = GameObject.Find("Random Obstacles");
-                randomObstacles.GetComponentsInChildren<Transform>(true, obstaclesSpawnPoints);
-                // Add Battle Rooms with the prefab but different items
-                while (rooms.Count != mapSize * mapSize - 1)
-                {
-                    rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BattleRoom, roomExtra));
-                }
-                roomExtra.SetActive(false);
-
-                // Load Boss Room Prefab and add Room
-                roomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Boss_Room_Extra"));
-                roomExtra.SetActive(false);
-                rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.BossRoom, roomExtra));
-                // Randomizing the mapSize * mapSize dungeon
-                rooms.Shuffle(1, mapSize * mapSize - 1);
-                // initialize empty room number
-                for (int i = 0; i < rooms.Count; i++)
-                {
-                    if (rooms[i].Empty()) { emptyRoomNumber = i; break; }
-                    // string roomtype = rooms[i].roomType.ToString();
-                    // Debug.Log("Room" + i + " : " + roomtype);
-                }
-                UIManager.instance.DrawMinimap();
-
-                 // load & justify player position
-                if(localPlayerInstance == null){
-                    Debug.LogFormat("We are Instantiating LocalPlayer from {0}", Application.loadedLevelName);
-                    localPlayerInstance = PhotonNetwork.Instantiate("Prefabs/Players/Knight_Male_Player", positions[4], Quaternion.identity, 0);
-                }
-
-                Hashtable userProperty = new Hashtable();
-                userProperty["roomNumber"] = roomNumberLocal;
-                PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
+                Hashtable roomProperties = new Hashtable();
+                roomProperties["gridMap"] = roomtypes;
+                PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
             }
 
             // Add Environment(like entrances) Trigger Listener
@@ -298,6 +237,14 @@ namespace DungeonOfVinheim
                 }
             });
 
+        }
+
+        private void Start() {
+            Room.roomsContainer = new GameObject("rooms");
+            defaultRoom = GameObject.Find("Default Room");
+            Hashtable roomProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+            object[] gridMap = (object[])roomProperties["gridMap"];
+            UpdateNewPlayerMap(gridMap);
         }
 
         // room can only be moved to the empty room's position

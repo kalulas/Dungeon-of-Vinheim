@@ -2869,6 +2869,7 @@ GameObject:
   - component: {fileID: 7778452108054408157}
   - component: {fileID: 7778452108054408156}
   - component: {fileID: 7778452108054408159}
+  - component: {fileID: 6135925447797598173}
   m_Layer: 9
   m_Name: Skeleton_Slave_01
   m_TagString: Enemy
@@ -2978,8 +2979,8 @@ MonoBehaviour:
   strafeSideways: 1
   strafeBackward: 1
   strafeDistance: 3
-  minStrafeSwape: 2
-  maxStrafeSwape: 5
+  minStrafeSwap: 2
+  maxStrafeSwap: 5
   strafeRotationSpeed: 5
   currentState: 2
   sphereSensor: {fileID: 7778452107155753665}
@@ -3159,6 +3160,28 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &6135925447797598173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7778452108054408153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 0
+  OwnershipTransfer: 0
+  ObservedComponents:
+  - {fileID: 0}
+  viewIdField: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &7778452108074037638
 GameObject:
   m_ObjectHideFlags: 0

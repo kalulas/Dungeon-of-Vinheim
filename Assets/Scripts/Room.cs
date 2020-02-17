@@ -5,6 +5,9 @@ using UnityEngine.AI;
 using Invector.vCharacterController.AI;
 using DungeonOfVinheim;
 
+using Photon.Pun;
+using Photon.Realtime;
+
 public enum RoomType
 {
     EmptyRoom,
@@ -80,13 +83,17 @@ public class Room : ScriptableObject
         vWaypointArea pathArea = GameManager.instance.WaypointArea.GetComponent<vWaypointArea>();
         GameObject enemiesContainer = new GameObject("enemies");
         enemiesContainer.GetComponent<Transform>().SetParent(roomExtraObjectsContainer.GetComponent<Transform>());
-        for (int i = 0; i < enemyCount; i++){
-            GameObject enemy = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Enemies/Skeleton_Slave_01"), enemiesSpawnPoints[i+1]);
-            enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
-            enemy.SetActive(false);
-            enemyList.Add(enemy);
-            enemy.GetComponent<Transform>().SetParent(enemiesContainer.GetComponent<Transform>());
+        if(PhotonNetwork.IsMasterClient){
+            for (int i = 0; i < enemyCount; i++){
+                GameObject enemy = PhotonNetwork.InstantiateSceneObject("Prefabs/Enemies/Skeleton_Slave_01", enemiesSpawnPoints[i+1].position, Quaternion.identity,0,null);
+                // GameObject enemy = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Enemies/Skeleton_Slave_01"), enemiesSpawnPoints[i+1]);
+                enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
+                enemy.SetActive(false);
+                enemyList.Add(enemy);
+                enemy.GetComponent<Transform>().SetParent(enemiesContainer.GetComponent<Transform>());
+            }
         }
+
 
         GameObject[] obstacles = Resources.LoadAll<GameObject>("Prefabs/Environments/Rocks");
         GameObject obstaclesContainer = new GameObject("obstacles");

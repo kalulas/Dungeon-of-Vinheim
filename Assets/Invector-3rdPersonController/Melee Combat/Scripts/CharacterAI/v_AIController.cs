@@ -39,8 +39,9 @@ namespace Invector.vCharacterController.AI
             headStart = false;
         }
 
-        public void OnEnable()
+        public new void OnEnable()
         {
+            base.OnEnable();
             if (!headStart)
             {
                 StartCoroutine(StateRoutine());
@@ -309,14 +310,14 @@ namespace Invector.vCharacterController.AI
             if (OnStrafeArea && strafeSideways)
             {
                 //Debug.DrawRay(transform.position, dir * 2, Color.red, 0.2f);
-                if (strafeSwapeFrequency <= 0)
+                if (strafeSwapFrequency <= 0)
                 {
                     sideMovement = GetRandonSide();
-                    strafeSwapeFrequency = UnityEngine.Random.Range(minStrafeSwape, maxStrafeSwape);
+                    strafeSwapFrequency = UnityEngine.Random.Range(minStrafeSwap, maxStrafeSwap);
                 }
                 else
                 {
-                    strafeSwapeFrequency -= Time.deltaTime;
+                    strafeSwapFrequency -= Time.deltaTime;
                 }
                 fwdMovement = (TargetDistance < distanceToAttack) ? (strafeBackward ? -1 : 0) : TargetDistance > distanceToAttack ? 1 : 0;
                 var dir = ((transform.right * sideMovement) + (transform.forward * fwdMovement));

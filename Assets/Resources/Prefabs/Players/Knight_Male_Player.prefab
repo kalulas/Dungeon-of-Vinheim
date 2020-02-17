@@ -2974,7 +2974,6 @@ MonoBehaviour:
   moveDirection: {x: 0, y: 0, z: 0}
   matchTarget: {fileID: 0}
   useInstance: 0
-  roomNumber: 0
 --- !u!114 &7271532334958984982
 MonoBehaviour:
   m_ObjectHideFlags: 0

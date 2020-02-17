@@ -48,9 +48,9 @@ namespace Invector.vCharacterController.AI
         [Tooltip("Distance to switch to the strafe locomotion, leave with 0 if you don't want your character to strafe")]
         public float strafeDistance = 3f;
         [Tooltip("Min time to change the strafe direction")]
-        public float minStrafeSwape = 2f;
+        public float minStrafeSwap = 2f;
         [Tooltip("Max time to change the strafe direction")]
-        public float maxStrafeSwape = 5f;
+        public float maxStrafeSwap = 5f;
         [Tooltip("Velocity to rotate the character while strafing")]
         public float strafeRotationSpeed = 5f;
 
@@ -176,7 +176,7 @@ namespace Invector.vCharacterController.AI
         protected float timer, wait;
         protected float fovAngle;
         protected float sideMovement, fwdMovement = 0;
-        protected float strafeSwapeFrequency;
+        protected float strafeSwapFrequency;
         protected float groundDistance;
         protected Vector3 startPosition;
         protected RaycastHit groundHit;

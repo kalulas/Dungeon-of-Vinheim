@@ -39,8 +39,9 @@ namespace Invector.vEventSystems
             RegisterEvents();
         }
 
-        private void OnDisable()
+        private new void OnDisable()
         {
+            base.OnDisable();
             if (removeEventsOnDisable)
             {
                 eventsRemovedByOnDisable = true;
@@ -48,8 +49,9 @@ namespace Invector.vEventSystems
             }
         }
 
-        public void OnEnable()
+        public new void OnEnable()
         {
+            base.OnEnable();
             if (eventsRemovedByOnDisable && hasAnimator && hasValidBehaviours)
             {
                 RegisterEvents();

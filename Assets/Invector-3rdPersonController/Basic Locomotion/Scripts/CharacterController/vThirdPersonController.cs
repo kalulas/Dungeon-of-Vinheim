@@ -26,7 +26,7 @@ namespace Invector.vCharacterController
         public bool useInstance = true;
         public static vThirdPersonController instance;
         // [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
-        public int roomNumber;
+        // public int roomNumber;
 
         #endregion
         private void Awake() {

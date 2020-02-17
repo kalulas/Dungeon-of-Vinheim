@@ -33,14 +33,18 @@ namespace Invector.vCharacterController
             animatorStateInfos.RegisterListener();
         }
 
-        protected virtual void OnEnable()
+        protected virtual new void OnEnable()
         {
+            // Edit: add "new" && base() here because of inheritage
+            base.OnEnable();
             if (animatorStateInfos != null)
                 animatorStateInfos.RegisterListener();
         }
 
-        protected virtual void OnDisable()
+        protected virtual new void OnDisable()
         {
+            // Edit: add "new" base() here because of inheritage
+            base.OnDisable();
             if (animatorStateInfos != null)
                 animatorStateInfos.RemoveListener();
         }
@@ -70,7 +74,7 @@ namespace Invector.vCharacterController
 
         public virtual void ActionsControl()
         {
-            // to have better control of your actions, you can assign bools to know if an animation is playing or not
+            // to have better control of your actions, you can assign bool to know if an animation is playing or not
             // this way you can use this bool to create custom behavior for the controller
             
             // identify if the rolling animations is playing
@@ -298,17 +302,17 @@ namespace Invector.vCharacterController
             return false;
         }
 
-        public virtual void MatchTarget(Vector3 matchPosition, Quaternion matchRotation, AvatarTarget target, MatchTargetWeightMask weightMask, float normalisedStartTime, float normalisedEndTime)
+        public virtual void MatchTarget(Vector3 matchPosition, Quaternion matchRotation, AvatarTarget target, MatchTargetWeightMask weightMask, float normalisedStartTime, float normalizedEndTime)
         {
             if (animator.isMatchingTarget || animator.IsInTransition(0))
                 return;
 
             float normalizeTime = Mathf.Repeat(animator.GetCurrentAnimatorStateInfo(0).normalizedTime, 1f);
 
-            if (normalizeTime > normalisedEndTime)
+            if (normalizeTime > normalizedEndTime)
                 return;
 
-            animator.MatchTarget(matchPosition, matchRotation, target, weightMask, normalisedStartTime, normalisedEndTime);
+            animator.MatchTarget(matchPosition, matchRotation, target, weightMask, normalisedStartTime, normalizedEndTime);
         }
 
         #endregion

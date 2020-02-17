@@ -95,8 +95,9 @@ namespace Invector.vCharacterController
                 return ignoreSmooth ? 1f : smooth * Time.deltaTime;
             }
         }
-        protected virtual void OnEnable()
+        protected virtual new void OnEnable()
         {
+            base.OnEnable();
             if (animatorStateInfos != null && animator)
                 animatorStateInfos.RegisterListener();
         }
