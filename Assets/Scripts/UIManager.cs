@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using Invector.vCharacterController;
-using Invector.vCamera;
 using DungeonOfVinheim;
 
 using Photon.Pun;

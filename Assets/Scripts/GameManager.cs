@@ -30,7 +30,6 @@ public static class IListExtensions
 namespace DungeonOfVinheim
 {
     using ExitGames.Client.Photon;
-    // using ExitGames.Client.Photon;
     // 单例脚本管理地图信息并进行关卡切换
     public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
@@ -39,12 +38,15 @@ namespace DungeonOfVinheim
         /// positions stored for player's reposition when he enters a new room
         /// </summary>
         public static Vector3[] positions = new Vector3[5] {
-        new Vector3 (15.4f, 0.15f, 0f), // down 
-        new Vector3 (-1.3f, 0.15f, 16.66f), // left
-        new Vector3 (32.22f, 0.15f, 16.73f), // right
-        new Vector3 (15.36f, 0.15f, 33.23f), // up
-        new Vector3 (15.45f, 0.15f, 16.66f) //center
-    };
+            new Vector3 (15.4f, 0.15f, 0f), // down 
+            new Vector3 (-1.3f, 0.15f, 16.66f), // left
+            new Vector3 (32.22f, 0.15f, 16.73f), // right
+            new Vector3 (15.36f, 0.15f, 33.23f), // up
+            new Vector3 (15.45f, 0.15f, 16.66f) //center
+        };
+        public static readonly string playerLocationKey = "roomNumber";
+        public static readonly string mapDataKey = "gridMap";
+        public static readonly string enemyListKey = "enemyList";
         // the same as original vThirdPersonController.LocalPlayerInstance
         [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
         public static GameObject localPlayerInstance;
@@ -109,7 +111,7 @@ namespace DungeonOfVinheim
                 if(targetPlayer == player.GetComponent<PhotonView>().Owner){
                     ExitGames.Client.Photon.Hashtable userProperty = targetPlayer.CustomProperties;
                     // [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
-                    int roomNumber = (int)userProperty["roomNumber"];
+                    int roomNumber = (int)userProperty[playerLocationKey];
                     Debug.LogFormat("OnPlayerPropertiesUpdate() Player {0} has entered room {1}",targetPlayer, roomNumber);
                     player.SetActive(roomNumber == roomNumberLocal);
                 }
@@ -143,7 +145,7 @@ namespace DungeonOfVinheim
             PhotonNetwork.RemoveCallbackTarget(this);
         }
 
-        public void UpdateNewPlayerMap(object[] roomtypes){
+        public void BuildAndCreateMap(object[] roomtypes){
             int roomNumber = 0;
             GameObject startingRoomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Starting_Room_Extra"));
             GameObject rewardRoomExtra = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/RoomExtras/Reward_Room_Extra"));
@@ -191,7 +193,7 @@ namespace DungeonOfVinheim
 
             // let others devices disactive me
             Hashtable userProperty = new Hashtable();
-            userProperty["roomNumber"] = roomNumberLocal;
+            userProperty[playerLocationKey] = roomNumberLocal;
             PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
             // disactive others
             DisplayPlayersInCurrentRoom();
@@ -218,7 +220,7 @@ namespace DungeonOfVinheim
                 roomtypes.Shuffle(1, mapSize * mapSize - 1);
 
                 Hashtable roomProperties = new Hashtable();
-                roomProperties["gridMap"] = roomtypes;
+                roomProperties[mapDataKey] = roomtypes;
                 PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
             }
 
@@ -243,8 +245,8 @@ namespace DungeonOfVinheim
             Room.roomsContainer = new GameObject("rooms");
             defaultRoom = GameObject.Find("Default Room");
             Hashtable roomProperties = PhotonNetwork.CurrentRoom.CustomProperties;
-            object[] gridMap = (object[])roomProperties["gridMap"];
-            UpdateNewPlayerMap(gridMap);
+            object[] gridMap = (object[])roomProperties[mapDataKey];
+            BuildAndCreateMap(gridMap);
         }
 
         // room can only be moved to the empty room's position
@@ -264,7 +266,7 @@ namespace DungeonOfVinheim
             {
                 if(player){
                     Hashtable ht = player.GetComponent<PhotonView>().Owner.CustomProperties;
-                    player.SetActive((int)ht["roomNumber"] == roomNumberLocal);
+                    player.SetActive((int)ht[playerLocationKey] == roomNumberLocal);
                 }
             }
         }
@@ -363,7 +365,7 @@ namespace DungeonOfVinheim
 
                     // set properties to update localplayer's gameobject in other devices
                     Hashtable userProperty = new Hashtable();
-                    userProperty["roomNumber"] = roomNumberLocal;
+                    userProperty[playerLocationKey] = roomNumberLocal;
                     PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
                     DisplayPlayersInCurrentRoom();
 
@@ -377,14 +379,16 @@ namespace DungeonOfVinheim
                     localPlayerInstance.SendMessage("SetLockAllInput", false);
                     entranceAvailable = true;
                 });
+
+                // sort all gameobjects related to roomNumber in others' client
+                if(!PhotonNetwork.IsMasterClient){
+                    foreach (Room room in rooms)
+                    {
+                        if(!room.setup) room.GetReady();
+                    }
+                }
             }
         }
-
-        public void UnityEventAction()
-        {
-            Debug.Log("UnityEventTest!");
-        }
-
         // Update is called once per frame
         // void Update()
         // { 
