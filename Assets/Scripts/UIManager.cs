@@ -23,6 +23,7 @@ public class UIManager : MonoBehaviour
     public GameObject minimap;
     public GameObject minimapMenu;
     public GameObject actionText;
+    public Text countDownText;
 
     private Button lastMinimapDirBtn;
     private Stack<GameObject> menuStack = new Stack<GameObject>();
@@ -65,6 +66,10 @@ public class UIManager : MonoBehaviour
             // Debug.Log("room clicked" + go.name);
             SiblingCheck(int.Parse(go.name.Substring("room".Length)));
         }
+    }
+
+    public void SetCountDownText(string text){
+        if(countDownText) countDownText.text = text;
     }
 
     public void HideAndActive(GameObject menu){
@@ -153,7 +158,7 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         if(Input.GetButtonDown("Escape")){
-            Debug.Log("MUL: Escape pressed!");
+            // Debug.Log("MUL: Escape pressed!");
             if (menuStack.Count == 0) {
                 HideAndActive(mainMenu);
                 // unlock cursor from the centor of screen, show cursor and lock all input(basic and melee)

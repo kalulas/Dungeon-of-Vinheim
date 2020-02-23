@@ -4,6 +4,7 @@ using Invector;
 using Invector.vCharacterController;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 using Photon.Pun;
@@ -27,6 +28,9 @@ public static class IListExtensions
         }
     }
 }
+
+public class TriggerEvent : UnityEvent{ }
+
 namespace DungeonOfVinheim
 {
     using ExitGames.Client.Photon;
@@ -34,6 +38,7 @@ namespace DungeonOfVinheim
     public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         public static GameManager instance;
+        public static TriggerEvent ActionTriggerEvent = new TriggerEvent();
         /// <summary>
         /// positions stored for player's reposition when he enters a new room
         /// </summary>
@@ -47,6 +52,11 @@ namespace DungeonOfVinheim
         public static readonly string playerLocationKey = "roomNumber";
         public static readonly string mapDataKey = "gridMap";
         public static readonly string enemyListKey = "enemyList";
+
+        public const byte JustEnterRoom = 1;
+        public const byte StartEnterRoomCountDown = 2;
+        public const byte CancelEnterRoomCountDown = 3;
+
         // the same as original vThirdPersonController.LocalPlayerInstance
         [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
         public static GameObject localPlayerInstance;
@@ -63,7 +73,12 @@ namespace DungeonOfVinheim
         public int mapSize { get; private set; } = 5;
         public int emptyRoomNumber { get; private set; }
         public int roomNumberLocal { get; private set; }
+
+        private float entranceWaitTime = 5.0f;
         private bool entranceAvailable = true;
+        private bool entranceWaiting = false;
+        private Coroutine entranceCountDownCor = null;
+        private Coroutine entranceEnterCor = null;
         // basic environment for all rooms
         private GameObject defaultRoom;
         private List<Room> rooms = new List<Room>();
@@ -90,6 +105,35 @@ namespace DungeonOfVinheim
             byte eventCode = photonEvent.Code;
             switch (eventCode)
             {
+                case JustEnterRoom: 
+                    object[] data0 = (object[])photonEvent.CustomData;
+                    UIManager.instance.SetCountDownText("");
+                    Direction dir0 = (Direction)data0[0]; EnterRoom(dir0); 
+                    break;
+                case StartEnterRoomCountDown:
+                    object[] data1 = (object[])photonEvent.CustomData;
+                    Direction dir1 = (Direction)data1[0];
+                    Debug.Log("start wait in direction " + dir1);
+                    float countDown = entranceWaitTime;
+                    entranceCountDownCor = WaitTimeManager.CreateCoroutine(true, entranceWaitTime, delegate ()
+                    {
+                        countDown -= 1.0f;
+                        UIManager.instance.SetCountDownText(countDown.ToString());
+                    }, 1.0f, true);
+                    entranceEnterCor = WaitTimeManager.CreateCoroutine(false, entranceWaitTime, delegate ()
+                    {
+                        UIManager.instance.SetCountDownText("");
+                        EnterRoom(dir1);
+                    });
+                    break;
+                case CancelEnterRoomCountDown: 
+                    object[] data2 = (object[])photonEvent.CustomData;
+                    Direction dir2 = (Direction)data2[0];
+                    WaitTimeManager.CancelCoroutine(ref entranceEnterCor);
+                    WaitTimeManager.CancelCoroutine(ref entranceCountDownCor);
+                    UIManager.instance.SetCountDownText("");
+                    Debug.Log("cancel wait in direction " + dir2 + " if waited");
+                    break;
                 default: break;
             }
         }
@@ -219,25 +263,30 @@ namespace DungeonOfVinheim
                 roomtypes[index] = RoomType.BossRoom;
                 roomtypes.Shuffle(1, mapSize * mapSize - 1);
 
-                Hashtable roomProperties = new Hashtable();
-                roomProperties[mapDataKey] = roomtypes;
+                Hashtable roomProperties = new Hashtable(){ 
+                    { mapDataKey, roomtypes },
+                    {"Down",0},
+                    {"Up",0},
+                    {"Left",0},
+                    {"Right",0},
+                };
                 PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
             }
 
             // Add Environment(like entrances) Trigger Listener
             // ⬇ also available
             // triggerEventStay.AddListener((Collider collider, GameObject item)=>{
-            ItemTrigger.triggerEventStay.AddListener(delegate (Collider collider, GameObject item)
-            {
-                if (Input.GetButtonDown("A"))
-                {
-                    if (ItemTrigger.triggerEventStay.type == TriggerEventType.Entrance)
-                    {
-                        if (entranceAvailable) HandleEntranceEvent(item, ItemTrigger.triggerEventStay.direction);
-                        // else can be locked by the host
-                    }
-                }
-            });
+            // ItemTrigger.triggerEventStay.AddListener(delegate (Collider collider, GameObject item)
+            // {
+            //     if (Input.GetButtonDown("A"))
+            //     {
+            //         if (ItemTrigger.triggerEventStay.type == TriggerEventType.Entrance)
+            //         {
+            //             HandleEntranceEvent(ItemTrigger.triggerEventStay.direction);
+            //             // else can be locked by the host
+            //         }
+            //     }
+            // });
 
         }
 
@@ -284,11 +333,7 @@ namespace DungeonOfVinheim
             }
         }
 
-        /// <summary>
-        /// handle triggerevent when the player is trying to enter the next room
-        /// </summary>
-        private void HandleEntranceEvent(GameObject entrance, Direction direction)
-        {
+        private int GetPace(Direction direction){
             int pace;
             switch (direction)
             {
@@ -309,89 +354,193 @@ namespace DungeonOfVinheim
                     pace = 0;
                     break;
             }
+            return pace;
+        }
+
+        /// <summary>
+        /// handle triggerevent when the player is trying to enter the next room
+        /// </summary>
+        public void HandleEntranceEvent(Direction direction)
+        {
+            int pace = GetPace(direction);
             if (pace == 0 || rooms[roomNumberLocal + pace].Empty())
             {
                 Debug.Log("BLOCKED");
                 // notify player that no room ahead, also no need for prefix "press e to"
                 UIManager.setActionTextContentEvent.Invoke("BLOCKED", false);
             }
-            else
+            else if(entranceAvailable)
             {
                 // prevent from player's pressing too many times
-                entranceAvailable = false;
-                localPlayerInstance.SendMessage("SetLockAllInput", true);
-                // NOTE: no TRIGGER EXIT event now so manually set action text false
-                UIManager.setActionTextActiveEvent.Invoke(false);
-                // TODO: play smoke animation & player's open door animation maybe you need to reposition the player
-                Animation ani = entrance.GetComponent<Animation>();
-                ani.Play("DoorOpen");
-                // wait until the entrance is fully open
-                ItemTrigger.entranceFullyOpenEvent.AddListener(delegate ()
+                // entranceAvailable = false;
+                Hashtable roomProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+                RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All }; 
+                SendOptions sendOptions = new SendOptions { Reliability = true };
+                object[] content = new object[1];
+                int playerInRoom = PhotonNetwork.CurrentRoom.PlayerCount;
+                Direction[] dirs = new Direction[] { Direction.Down, Direction.Left, Direction.Right, Direction.Up };
+
+                localPlayerInstance.SendMessage("SetLockAllInput", !entranceWaiting);
+
+                if(!entranceWaiting){
+                    // logic of entrance's queue : press E first time
+                    entranceWaiting = true;
+
+                    roomProperties[direction.ToString()] = (int)roomProperties[direction.ToString()] + 1;
+                    PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
+                    
+                    bool waitBalance = false;
+                    Direction originalDir = Direction.Down;
+                    
+                    foreach (Direction dir in dirs)
+                    {
+                        if ((int)roomProperties[dir.ToString()] == (int)roomProperties[direction.ToString()] && dir != direction) {
+                            if ((int)roomProperties[dir.ToString()] == Mathf.Ceil((playerInRoom - 1) / 2))
+                            { originalDir = dir; waitBalance = true; break; }
+                        }
+                    }
+                    // same players at different entrance
+                    if(waitBalance){
+                        content[0] = originalDir;
+                        PhotonNetwork.RaiseEvent(CancelEnterRoomCountDown, content, raiseEventOptions, sendOptions);
+                        // cancel count down event with originalDir
+                    }
+                    else if( playerInRoom == 1 || (int)roomProperties[direction.ToString()] == playerInRoom-1) {
+                        content[0] = direction;
+                        PhotonNetwork.RaiseEvent(CancelEnterRoomCountDown, content, raiseEventOptions, sendOptions);
+                        PhotonNetwork.RaiseEvent(JustEnterRoom, content, raiseEventOptions, sendOptions);
+                        // cancel count down event with direction
+                        // invoke enter room event with direction
+                    }
+                    else if((int)roomProperties[direction.ToString()] == Mathf.Ceil((playerInRoom-1)/2)){
+                        content[0] = direction;
+                        PhotonNetwork.RaiseEvent(StartEnterRoomCountDown, content, raiseEventOptions, sendOptions);
+                    }
+
+                }
+                else{
+                    // logic of entrance's queue : press E second time
+                    entranceWaiting = false;
+                    
+                    roomProperties[direction.ToString()] = (int)roomProperties[direction.ToString()] - 1;
+                    PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
+
+                    bool waitUnbalance = false;
+                    Direction anotherDir = Direction.Down;
+
+                    foreach (Direction dir in dirs)
+                    {
+                        if ((int)roomProperties[dir.ToString()] > Mathf.Ceil((playerInRoom - 1) / 2)) { 
+                            waitUnbalance = true; anotherDir = dir; break; 
+                        }
+                    }
+                    if(waitUnbalance){
+                        content[0] = anotherDir;
+                        PhotonNetwork.RaiseEvent(StartEnterRoomCountDown, content, raiseEventOptions, sendOptions);
+                        // invoke count down event with anotherDir
+                    }
+                    else if((int)roomProperties[direction.ToString()] < Mathf.Ceil((playerInRoom-1)/2)){
+                        content[0] = direction;
+                        PhotonNetwork.RaiseEvent(CancelEnterRoomCountDown, content, raiseEventOptions, sendOptions);
+                        // cancel count down event
+                    }
+                    
+                }
+
+                // EnterRoom(entrance, direction);
+            }
+            else{
+                Debug.Log("sorry entrance not available");
+            }
+        }
+
+        private void EnterRoom(Direction direction){
+            // same network events may arrive during the process
+            entranceAvailable = false;
+            // some item on exit cant function properly
+            ActionTriggerEvent.RemoveAllListeners();
+            GameObject entrance = GameObject.Find("Entrance" + direction.ToString());
+
+            int pace = GetPace(direction);
+            // NOTE: no TRIGGER EXIT event now so manually set action text false
+            UIManager.setActionTextActiveEvent.Invoke(false);
+            // TODO: play smoke animation & player's open door animation maybe you need to reposition the player
+            Animation ani = entrance.GetComponent<Animation>();
+            ani.Play("DoorOpen");
+            // wait until the entrance is fully open
+            ItemTrigger.entranceFullyOpenEvent.AddListener(delegate ()
+            {
+                rooms[roomNumberLocal].SetRoomEnvActive(false);
+                rooms[roomNumberLocal].SetRoomObjectsActive(false);
+                // update currentLocation
+                roomNumberLocal += pace;
+                // change player's position (Tranform component)
+                switch (direction)
                 {
-                    rooms[roomNumberLocal].SetRoomEnvActive(false);
-                    rooms[roomNumberLocal].SetRoomObjectsActive(false);
-                    // update currentLocation
-                    roomNumberLocal += pace;
+                    // check if the room is on the edge
+                    case Direction.Down:
+                        localPlayerInstance.GetComponent<Transform>().position = positions[3];
+                        break;
+                    case Direction.Left:
+                        localPlayerInstance.GetComponent<Transform>().position = positions[2];
+                        break;
+                    case Direction.Right:
+                        localPlayerInstance.GetComponent<Transform>().position = positions[1];
+                        break;
+                    case Direction.Up:
+                        localPlayerInstance.GetComponent<Transform>().position = positions[0];
+                        break;
+                    default:
+                        break;
+                }
+                // check otherplayers' roomNumber before the new room activated
+                // DisplayPlayersInCurrentRoom();
+                rooms[roomNumberLocal].SetRoomEnvActive(true);
+                // Rebuild Nav Mesh
+                GameObject.Find("Default Room").GetComponent<NavMeshSurface>().BuildNavMesh();
+                // Validation of waypoints and patrol points after rebuilt
+                WaypointsValidation();
+                rooms[roomNumberLocal].SetRoomObjectsActive(true);
+                Debug.Log("Direction " + direction + ": Room" + (roomNumberLocal - pace) + " --> Room" + roomNumberLocal);
+                // set properties to update localplayer's gameobject in other devices
+                Hashtable userProperty = new Hashtable();
+                userProperty[playerLocationKey] = roomNumberLocal;
+                PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
+                DisplayPlayersInCurrentRoom();
+                // reset the entrance's animation
+                AnimationState state = ani["DoorOpen"];
+                state.time = 0;
+                ani.Sample();
+                state.enabled = false;
 
-                    // change player's position (Tranform component)
-                    switch (direction)
-                    {
-                        // check if the room is on the edge
-                        case Direction.Down:
-                            localPlayerInstance.GetComponent<Transform>().position = positions[3];
-                            break;
-                        case Direction.Left:
-                            localPlayerInstance.GetComponent<Transform>().position = positions[2];
-                            break;
-                        case Direction.Right:
-                            localPlayerInstance.GetComponent<Transform>().position = positions[1];
-                            break;
-                        case Direction.Up:
-                            localPlayerInstance.GetComponent<Transform>().position = positions[0];
-                            break;
-                        default:
-                            break;
-                    }
-                    // check otherplayers' roomNumber before the new room activated
-                    // DisplayPlayersInCurrentRoom();
+                // reset wait count after entered a new room
+                Hashtable roomProperties = PhotonNetwork.CurrentRoom.CustomProperties;
+                roomProperties["Down"] = 0;
+                roomProperties["Left"] = 0;
+                roomProperties["Right"] = 0;
+                roomProperties["Up"] = 0;
+                PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
 
-                    rooms[roomNumberLocal].SetRoomEnvActive(true);
-                    // Rebuild Nav Mesh
-                    GameObject.Find("Default Room").GetComponent<NavMeshSurface>().BuildNavMesh();
-                    // Validation of waypoints and patrol points after rebuilt
-                    WaypointsValidation();
-                    rooms[roomNumberLocal].SetRoomObjectsActive(true);
-                    Debug.Log("Direction " + direction + ": Room" + (roomNumberLocal - pace) + " --> Room" + roomNumberLocal);
-
-                    // set properties to update localplayer's gameobject in other devices
-                    Hashtable userProperty = new Hashtable();
-                    userProperty[playerLocationKey] = roomNumberLocal;
-                    PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
-                    DisplayPlayersInCurrentRoom();
-
-                    // reset the entrance's animation
-                    AnimationState state = ani["DoorOpen"];
-                    state.time = 0;
-                    ani.Sample();
-                    state.enabled = false;
-
-                    ItemTrigger.entranceFullyOpenEvent.RemoveAllListeners();
-                    localPlayerInstance.SendMessage("SetLockAllInput", false);
-                    entranceAvailable = true;
-                });
-
-                // sort all gameobjects related to roomNumber in others' client
-                if(!PhotonNetwork.IsMasterClient){
-                    foreach (Room room in rooms)
-                    {
-                        if(!room.setup) room.GetReady();
-                    }
+                ItemTrigger.entranceFullyOpenEvent.RemoveAllListeners();
+                entranceWaiting = false;
+                entranceAvailable = true;
+                localPlayerInstance.SendMessage("SetLockAllInput", false);
+            });
+            // sort all gameobjects related to roomNumber in others' client
+            if(!PhotonNetwork.IsMasterClient){
+                foreach (Room room in rooms)
+                {
+                    if(!room.setup) room.GetReady();
                 }
             }
         }
+
         // Update is called once per frame
-        // void Update()
-        // { 
-        // }
+        void Update()
+        { 
+            if (Input.GetButtonDown("A")){
+                ActionTriggerEvent.Invoke();
+            }
+        }
     }
 }

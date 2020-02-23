@@ -6483,6 +6483,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5789470963287294490, guid: 69990241382df7d46a7becbafff63839,
+        type: 3}
+      propertyPath: m_Name
+      value: EntranceRight
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69990241382df7d46a7becbafff63839, type: 3}
 --- !u!4 &971093671222782729 stripped
@@ -6562,6 +6567,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5789470963287294490, guid: 69990241382df7d46a7becbafff63839,
+        type: 3}
+      propertyPath: m_Name
+      value: EntranceLeft
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69990241382df7d46a7becbafff63839, type: 3}
@@ -6719,6 +6729,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5789470963287294490, guid: 69990241382df7d46a7becbafff63839,
+        type: 3}
+      propertyPath: m_Name
+      value: EntranceDown
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69990241382df7d46a7becbafff63839, type: 3}
 --- !u!4 &4117259056464019889 stripped
@@ -6798,6 +6813,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5789470963287294490, guid: 69990241382df7d46a7becbafff63839,
+        type: 3}
+      propertyPath: m_Name
+      value: EntranceUp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69990241382df7d46a7becbafff63839, type: 3}

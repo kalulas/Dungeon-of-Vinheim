@@ -20,12 +20,6 @@ public enum Direction{
 
 public class AnimationEvent : UnityEvent{}
 
-// Collider may not be necessary can delete later on
-public class TriggerEvent : UnityEvent<Collider, GameObject>{
-    public TriggerEventType type;
-    public Direction direction;
-}
-
 public class ItemTrigger : MonoBehaviourPun
 {
     // Trigger Event will now bring the information of the entrance
@@ -38,8 +32,8 @@ public class ItemTrigger : MonoBehaviourPun
     public static TriggerEvent triggerEventStay = new TriggerEvent();
     // public static TriggerEvent triggerEventEnter = new TriggerEvent();
     // public static TriggerEvent triggerEventExit = new TriggerEvent();
-    
     public static AnimationEvent entranceFullyOpenEvent = new AnimationEvent();
+    private UnityAction itemAction = null;
 
     public void DoorFullyOpen(){
         entranceFullyOpenEvent.Invoke();
@@ -50,6 +44,10 @@ public class ItemTrigger : MonoBehaviourPun
         {
             UIManager.setActionTextContentEvent.Invoke(message, prefix);
             UIManager.setActionTextActiveEvent.Invoke(true);
+            if(type == TriggerEventType.Entrance){
+                itemAction = delegate () { GameManager.instance.HandleEntranceEvent(direction); };
+                GameManager.ActionTriggerEvent.AddListener(itemAction);
+            }
         }
     }
 
@@ -57,14 +55,18 @@ public class ItemTrigger : MonoBehaviourPun
         if (collider.gameObject == GameManager.localPlayerInstance)
         {
             UIManager.setActionTextActiveEvent.Invoke(false);
+            if(itemAction != null) {
+                GameManager.ActionTriggerEvent.RemoveListener(itemAction);
+                itemAction = null;
+            }
         }
     }
     
-    void OnTriggerStay(Collider collider){
-        if(collider.gameObject == GameManager.localPlayerInstance){
-            if(type == TriggerEventType.Entrance) triggerEventStay.direction = direction;
-            triggerEventStay.type = type;
-            triggerEventStay.Invoke(collider, this.gameObject);
-        }
-    }
+    // void OnTriggerStay(Collider collider){
+    //     if(collider.gameObject == GameManager.localPlayerInstance){
+    //         if(type == TriggerEventType.Entrance) triggerEventStay.direction = direction;
+    //         triggerEventStay.type = type;
+    //         triggerEventStay.Invoke(this.gameObject);
+    //     }
+    // }
 }
