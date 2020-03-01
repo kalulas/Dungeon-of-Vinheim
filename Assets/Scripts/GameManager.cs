@@ -52,6 +52,8 @@ namespace DungeonOfVinheim
         public static readonly string playerLocationKey = "roomNumber";
         public static readonly string mapDataKey = "gridMap";
         public static readonly string enemyListKey = "enemyList";
+        public static readonly string obstaclePathKey = "obstaclePath";
+        public static readonly string obstaclePosKey = "obstaclePos";
 
         public const byte JustEnterRoom = 1;
         public const byte StartEnterRoomCountDown = 2;
@@ -93,7 +95,7 @@ namespace DungeonOfVinheim
         }
 
         public override void OnPlayerEnteredRoom(Player newPlayer){
-            Debug.LogFormat("OnPlayerEnteredRoom() {0}", newPlayer.NickName); // not seen if you're the player connecting
+            Debug.LogFormat("OnPlayerEnteredRoom() {0}",newPlayer.NickName); // not seen if you're the player connecting
             if (PhotonNetwork.IsMasterClient)
             {
                 Debug.LogFormat("OnPlayerEnteredRoom(): update {0}'s map", newPlayer); // called before OnPlayerLeftRoom
@@ -150,16 +152,16 @@ namespace DungeonOfVinheim
         // NOTE: player's properties change event can only caught by the same photonview
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps){
             // Debug.Log("OnPlayerPropertiesUpdate()");
-            foreach (GameObject player in otherPlayers)
-            {
-                if(targetPlayer == player.GetComponent<PhotonView>().Owner){
-                    ExitGames.Client.Photon.Hashtable userProperty = targetPlayer.CustomProperties;
-                    // [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
-                    int roomNumber = (int)userProperty[playerLocationKey];
-                    Debug.LogFormat("OnPlayerPropertiesUpdate() Player {0} has entered room {1}",targetPlayer, roomNumber);
-                    player.SetActive(roomNumber == roomNumberLocal);
-                }
-            }
+            // foreach (GameObject player in otherPlayers)
+            // {
+            //     if(targetPlayer == player.GetComponent<PhotonView>().Owner){
+            //         ExitGames.Client.Photon.Hashtable userProperty = targetPlayer.CustomProperties;
+            //         // [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
+            //         int roomNumber = (int)userProperty[playerLocationKey];
+            //         Debug.LogFormat("OnPlayerPropertiesUpdate() Player {0} has entered room {1}",targetPlayer, roomNumber);
+            //         player.SetActive(roomNumber == roomNumberLocal);
+            //     }
+            // }
             
         }
 
@@ -236,11 +238,11 @@ namespace DungeonOfVinheim
             }
 
             // let others devices disactive me
-            Hashtable userProperty = new Hashtable();
-            userProperty[playerLocationKey] = roomNumberLocal;
-            PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
+            // Hashtable userProperty = new Hashtable();
+            // userProperty[playerLocationKey] = roomNumberLocal;
+            // PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
             // disactive others
-            DisplayPlayersInCurrentRoom();
+            // DisplayPlayersInCurrentRoom();
 
         }
 
@@ -503,10 +505,10 @@ namespace DungeonOfVinheim
                 rooms[roomNumberLocal].SetRoomObjectsActive(true);
                 Debug.Log("Direction " + direction + ": Room" + (roomNumberLocal - pace) + " --> Room" + roomNumberLocal);
                 // set properties to update localplayer's gameobject in other devices
-                Hashtable userProperty = new Hashtable();
-                userProperty[playerLocationKey] = roomNumberLocal;
-                PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
-                DisplayPlayersInCurrentRoom();
+                // Hashtable userProperty = new Hashtable();
+                // userProperty[playerLocationKey] = roomNumberLocal;
+                // PhotonNetwork.LocalPlayer.SetCustomProperties(userProperty);
+                // DisplayPlayersInCurrentRoom();
                 // reset the entrance's animation
                 AnimationState state = ani["DoorOpen"];
                 state.time = 0;

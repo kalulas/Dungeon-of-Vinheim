@@ -2871,7 +2871,8 @@ GameObject:
   - component: {fileID: 7778452108054408159}
   - component: {fileID: 6135925447797598173}
   - component: {fileID: 7806171529783663365}
-  - component: {fileID: -6074068278805766303}
+  - component: {fileID: -7042313208475796678}
+  - component: {fileID: -7830700140197423510}
   m_Layer: 9
   m_Name: Skeleton_Slave_01
   m_TagString: Enemy
@@ -2929,7 +2930,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   openCloseEvents: 0
   openCloseWindow: 1
-  selectedToolbar: 3
+  selectedToolbar: 5
   _isDead: 0
   _currentHealth: 0
   isImmortal: 0
@@ -2995,7 +2996,7 @@ MonoBehaviour:
   obstaclesLayer:
     serializedVersion: 2
     m_Bits: 1
-  sortTargetFromDistance: 0
+  sortTargetFromDistance: 1
   fieldOfView: 95
   maxDetectDistance: 5
   minDetectDistance: 2
@@ -3020,7 +3021,7 @@ MonoBehaviour:
   patrollingStopDistance: 0.5
   patrolWithoutAreaStyle: 0
   pathArea: {fileID: 0}
-  randomWaypoints: 1
+  randomWaypoints: 0
   _capsuleCollider: {fileID: 0}
   healthSlider: {fileID: 0}
   meleeManager: {fileID: 0}
@@ -3180,7 +3181,9 @@ MonoBehaviour:
   Synchronization: 3
   OwnershipTransfer: 0
   ObservedComponents:
-  - {fileID: -6074068278805766303}
+  - {fileID: 7778452108054408146}
+  - {fileID: -7042313208475796678}
+  - {fileID: -7830700140197423510}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -3196,7 +3199,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d27d05b6dc7cdb240917e559f7280747, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-6074068278805766303
+--- !u!114 &-7042313208475796678
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3211,6 +3214,130 @@ MonoBehaviour:
   m_SynchronizePosition: 1
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
+--- !u!114 &-7830700140197423510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7778452108054408153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 1
+    SynchronizeType: 0
+    Name: InputHorizontal
+  - Type: 1
+    SynchronizeType: 0
+    Name: InputVertical
+  - Type: 1
+    SynchronizeType: 0
+    Name: InputMagnitude
+  - Type: 1
+    SynchronizeType: 0
+    Name: TurnOnSpotDirection
+  - Type: 3
+    SynchronizeType: 0
+    Name: ActionState
+  - Type: 4
+    SynchronizeType: 0
+    Name: isDead
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsGrounded
+  - Type: 4
+    SynchronizeType: 2
+    Name: IsCrouching
+  - Type: 4
+    SynchronizeType: 2
+    Name: IsStrafing
+  - Type: 4
+    SynchronizeType: 2
+    Name: IsSprinting
+  - Type: 4
+    SynchronizeType: 2
+    Name: IsSliding
+  - Type: 4
+    SynchronizeType: 0
+    Name: FlipAnimation
+  - Type: 4
+    SynchronizeType: 0
+    Name: FlipEquip
+  - Type: 1
+    SynchronizeType: 0
+    Name: GroundDistance
+  - Type: 1
+    SynchronizeType: 0
+    Name: GroundAngle
+  - Type: 1
+    SynchronizeType: 0
+    Name: VerticalVelocity
+  - Type: 1
+    SynchronizeType: 0
+    Name: MoveSet_ID
+  - Type: 1
+    SynchronizeType: 0
+    Name: UpperBody_ID
+  - Type: 3
+    SynchronizeType: 0
+    Name: IdleRandom
+  - Type: 9
+    SynchronizeType: 0
+    Name: IdleRandomTrigger
+  - Type: 3
+    SynchronizeType: 0
+    Name: RandomAttack
+  - Type: 9
+    SynchronizeType: 2
+    Name: WeakAttack
+  - Type: 9
+    SynchronizeType: 2
+    Name: StrongAttack
+  - Type: 4
+    SynchronizeType: 2
+    Name: IsBlocking
+  - Type: 3
+    SynchronizeType: 0
+    Name: AttackID
+  - Type: 3
+    SynchronizeType: 0
+    Name: DefenseID
+  - Type: 3
+    SynchronizeType: 0
+    Name: RecoilID
+  - Type: 3
+    SynchronizeType: 0
+    Name: ReactionID
+  - Type: 9
+    SynchronizeType: 0
+    Name: TriggerRecoil
+  - Type: 9
+    SynchronizeType: 0
+    Name: TriggerReaction
+  - Type: 3
+    SynchronizeType: 0
+    Name: HitDirection
+  - Type: 9
+    SynchronizeType: 0
+    Name: ResetState
+  m_SynchronizeLayers:
+  - SynchronizeType: 1
+    LayerIndex: 0
+  - SynchronizeType: 1
+    LayerIndex: 1
+  - SynchronizeType: 1
+    LayerIndex: 2
+  - SynchronizeType: 1
+    LayerIndex: 3
+  - SynchronizeType: 1
+    LayerIndex: 4
+  - SynchronizeType: 1
+    LayerIndex: 5
 --- !u!1 &7778452108074037638
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,11 +1,12 @@
 ﻿using Invector.vEventSystems;
 using System.Collections;
 using UnityEngine;
+using Photon.Pun;
 
 namespace Invector.vCharacterController.AI
 {
     [vClassHeader("Simple Melee AI", "This is a Simple Melee AI that comes with the MeleeCombat package as a bonus, if you want a more advanced AI check our AI Template")]
-    public class v_AIController : v_AIAnimator, vIMeleeFighter
+    public class v_AIController : v_AIAnimator, vIMeleeFighter, IPunObservable
     {
         [vEditorToolbar("Iterations")]
         public float stateRoutineIteration = 0.15f;
@@ -24,6 +25,31 @@ namespace Invector.vCharacterController.AI
         protected Vector3 moveToDestination;
 
         private bool headStart = true;
+
+        #region IpunObservable implementation
+
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info){
+            if(stream.IsWriting){
+                stream.SendNext(currentHealth);
+                stream.SendNext(currentState);
+                stream.SendNext(isAttacking);
+                stream.SendNext(isBlocking);
+                stream.SendNext(isCrouching);
+                stream.SendNext(isRolling);
+                stream.SendNext(isStrafing);
+            }
+            else{
+                currentHealth = (float)stream.ReceiveNext();
+                currentState = (AIStates)stream.ReceiveNext();
+                isAttacking = (bool)stream.ReceiveNext();
+                isBlocking = (bool)stream.ReceiveNext();
+                isCrouching = (bool)stream.ReceiveNext();
+                isRolling = (bool)stream.ReceiveNext();
+                isStrafing = (bool)stream.ReceiveNext();
+            }
+        }
+
+        #endregion
 
         protected override void Start()
         {
@@ -513,6 +539,7 @@ namespace Invector.vCharacterController.AI
             if (visitedWaypoint.Contains(waypoints[currentWaypoint])) return null;
 
             agent.isStopped = false;
+            Debug.Log(GetComponent<PhotonView>().ViewID + "I choose waypoint " + currentWaypoint);
             return waypoints[currentWaypoint];
         }
 

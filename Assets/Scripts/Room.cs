@@ -97,62 +97,82 @@ namespace DungeonOfVinheim{
             List<Transform> enemiesSpawnPoints = GameManager.instance.enemiesSpawnPoints;
             List<Transform> points = GameManager.instance.obstaclesSpawnPoints;
             vWaypointArea pathArea = GameManager.instance.WaypointArea.GetComponent<vWaypointArea>();
+
             GameObject enemiesContainer = new GameObject("enemies");
-            enemiesContainer.GetComponent<Transform>().SetParent(roomExtraObjectsContainer.GetComponent<Transform>());
+            enemiesContainer.transform.SetParent(roomExtraObjectsContainer.transform);
+            GameObject obstaclesContainer = new GameObject("obstacles");
+            obstaclesContainer.transform.SetParent(roomExtraObjectsContainer.transform);
 
             if (PhotonNetwork.IsMasterClient)
             {
+                GameObject[] obstacles = Resources.LoadAll<GameObject>("Prefabs/Environments/Rocks");
+                obstacles.Shuffle(0, obstacles.Length);
                 int enemyCount = Random.Range(1, enemyCountLimit);
-                object[] enemyViewIdList = new object[enemyCount];
+                int obstacleCount = Random.Range(obstacles.Length / 2, obstacles.Length);
+                object[] enemyViewIds = new object[enemyCount];
+                string[] obstaclePaths = new string[obstacleCount];
+                Vector3[] obstaclePositions = new Vector3[obstacleCount];
+
                 for (int i = 0; i < enemyCount; i++)
                 {
                     GameObject enemy = PhotonNetwork.InstantiateSceneObject("Prefabs/Enemies/Skeleton_Slave_01", enemiesSpawnPoints[i + 1].position, Quaternion.identity, 0, null);
                     // GameObject enemy = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Enemies/Skeleton_Slave_01"), enemiesSpawnPoints[i+1]);
-                    enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
+                    // enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
                     enemy.SetActive(false);
                     enemyList.Add(enemy);
                     enemy.GetComponent<Transform>().SetParent(enemiesContainer.GetComponent<Transform>());
-                    enemyViewIdList[i] = enemy.GetComponent<PhotonView>().ViewID;
+                    enemyViewIds[i] = enemy.GetComponent<PhotonView>().ViewID;
                 }
+
+                for (int i = 0; i < obstacleCount; i++)
+                {
+                    GameObject obstacle = GameObject.Instantiate<GameObject>(obstacles[i]);
+                    obstacle.transform.position = GetRandomPositionInRange(points);
+                    obstaclePaths[i] = "Prefabs/Environments/Rocks/" + obstacles[i].name;
+                    obstaclePositions[i] = obstacle.transform.position;
+                    obstacle.SetActive(false);
+                    obstacleList.Add(obstacle);
+                    obstacle.transform.SetParent(obstaclesContainer.transform);
+                }
+
                 Hashtable roomProperties = new Hashtable();
-                roomProperties[GameManager.enemyListKey + roomNumber] = enemyViewIdList;
+                roomProperties[GameManager.enemyListKey + roomNumber] = enemyViewIds;
+                roomProperties[GameManager.obstaclePathKey + roomNumber] = obstaclePaths;
+                roomProperties[GameManager.obstaclePosKey + roomNumber] = obstaclePositions;
                 PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
             }
             else{
                 Hashtable roomProperties = PhotonNetwork.CurrentRoom.CustomProperties;
-                object[] enemyViewIdList = (object[])roomProperties[GameManager.enemyListKey + roomNumber];
-                if (enemyViewIdList != null)
+                object[] enemyViewIds = (object[])roomProperties[GameManager.enemyListKey + roomNumber];
+                string[] obstaclePaths = (string[])roomProperties[GameManager.obstaclePathKey + roomNumber];
+                Vector3[] obstaclePos = (Vector3[])roomProperties[GameManager.obstaclePosKey + roomNumber];
+                if (enemyViewIds != null)
                 {
-                    foreach (int viewID in enemyViewIdList)
+                    foreach (int viewID in enemyViewIds)
                     {
                         if (viewID == -1) break;
                         if (PhotonNetwork.GetPhotonView(viewID))
                         {
                             GameObject enemy = PhotonNetwork.GetPhotonView(viewID).gameObject;
                             enemyList.Add(enemy);
-                            enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
+                            // enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
                             enemy.SetActive(false);
                             enemyList.Add(enemy);
                             enemy.GetComponent<Transform>().SetParent(enemiesContainer.GetComponent<Transform>());
                         }
                     }
                 }
-            }
 
-            GameObject[] obstacles = Resources.LoadAll<GameObject>("Prefabs/Environments/Rocks");
-            GameObject obstaclesContainer = new GameObject("obstacles");
-            obstaclesContainer.GetComponent<Transform>().SetParent(roomExtraObjectsContainer.GetComponent<Transform>());
-            // shuffle and random number
-            // NOTE: EDIT OBSTACLES NUMBER HERE
-            obstacles.Shuffle(0, obstacles.GetLength(0));
-            int obstacleCount = Random.Range(1, obstacles.GetLength(0));
-            for (int i = 0; i < obstacleCount; i++)
-            {
-                GameObject obstacle = GameObject.Instantiate<GameObject>(obstacles[i]);
-                obstacle.GetComponent<Transform>().position = GetRandomPositionInRange(points);
-                obstacle.SetActive(false);
-                obstacleList.Add(obstacle);
-                obstacle.GetComponent<Transform>().SetParent(obstaclesContainer.GetComponent<Transform>());
+                if(obstaclePaths != null){
+                    for (int i = 0; i < obstaclePaths.Length; i++)
+                    {
+                        GameObject prefab = Resources.Load(obstaclePaths[i]) as GameObject;
+                        GameObject obstacle = GameObject.Instantiate(prefab, obstaclePos[i], Quaternion.identity);
+                        obstacle.SetActive(false);
+                        obstacleList.Add(obstacle);
+                        obstacle.transform.SetParent(obstaclesContainer.transform);
+                    }
+                }
             }
         }
 
