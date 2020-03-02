@@ -62,6 +62,8 @@ namespace DungeonOfVinheim
         // the same as original vThirdPersonController.LocalPlayerInstance
         [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
         public static GameObject localPlayerInstance;
+        public string hostInstancePath;
+        public string memberInstancePath;
         public List<GameObject> otherPlayers = new List<GameObject>();
 
         // patrol area for enemies
@@ -234,7 +236,11 @@ namespace DungeonOfVinheim
              // load & justify player position
             if(localPlayerInstance == null){
                 Debug.LogFormat("We are Instantiating LocalPlayer from {0}", Application.loadedLevelName);
-                localPlayerInstance = PhotonNetwork.Instantiate("Prefabs/Players/Knight_Male_Player", positions[4], Quaternion.identity, 0);
+                if (PhotonNetwork.IsMasterClient) { 
+                    localPlayerInstance = PhotonNetwork.Instantiate(hostInstancePath, positions[4], Quaternion.identity, 0); 
+                    
+                }
+                else localPlayerInstance = PhotonNetwork.Instantiate(memberInstancePath, positions[4], Quaternion.identity, 0);
             }
 
             // let others devices disactive me

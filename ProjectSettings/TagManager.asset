@@ -30,6 +30,8 @@ TagManager:
   - CoverPoint
   - Interactable
   - AIAction
+  - AffectCameraZoom
+  - Host
   layers:
   - Default
   - TransparentFX
@@ -48,7 +50,7 @@ TagManager:
   - HeadTrack
   - BodyPart
   - BlockAIRayCast
-  - 
+  - Host
   - 
   - 
   - 

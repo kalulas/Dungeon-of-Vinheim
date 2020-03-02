@@ -2180,7 +2180,7 @@ GameObject:
   - component: {fileID: 7271532334721799480}
   m_Layer: 8
   m_Name: Root
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3577,7 +3577,7 @@ GameObject:
   - component: {fileID: 7271532334970950304}
   m_Layer: 8
   m_Name: Character_Hero_Knight_Male
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

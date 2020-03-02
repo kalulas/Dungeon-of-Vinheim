@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3341496}
   - component: {fileID: 2331906}
   - component: {fileID: 6632652819081623020}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: RockPile_Square_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
