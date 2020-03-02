@@ -42,15 +42,15 @@ public class ItemTrigger : MonoBehaviourPun
     void OnTriggerEnter(Collider collider){
         if (collider.gameObject == GameManager.localPlayerInstance)
         {
-            if(collider.gameObject.tag == "Player")
-            {
+            // if(collider.gameObject.tag == "Player")
+            // {
                 UIManager.setActionTextContentEvent.Invoke(message, prefix);
                 UIManager.setActionTextActiveEvent.Invoke(true);
                 if(type == TriggerEventType.Entrance){
                     itemAction = delegate () { GameManager.instance.HandleEntranceEvent(direction); };
                     GameManager.ActionTriggerEvent.AddListener(itemAction);
                 }
-            }
+            // }
             // else if(collider.gameObject.tag == "Host")
         }
     }
@@ -58,15 +58,15 @@ public class ItemTrigger : MonoBehaviourPun
     void OnTriggerExit(Collider collider){
         if (collider.gameObject == GameManager.localPlayerInstance)
         {
-            if (collider.gameObject.tag == "Player")
-            {
+            // if (collider.gameObject.tag == "Player")
+            // {
                 UIManager.setActionTextActiveEvent.Invoke(false);
                 if (itemAction != null)
                 {
                     GameManager.ActionTriggerEvent.RemoveListener(itemAction);
                     itemAction = null;
                 }
-            }
+            // }
             // else if(collider.gameObject.tag == "Host")
         }
     }

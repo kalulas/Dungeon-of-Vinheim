@@ -10,12 +10,14 @@ using Photon.Pun;
 
 public class SetActiveEvent : UnityEvent<bool>{}
 public class SetContentEvent : UnityEvent<string, bool>{}
+public class UnityEventInt : UnityEvent<int>{}
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
     public static SetActiveEvent setActionTextActiveEvent = new SetActiveEvent();
     public static SetContentEvent setActionTextContentEvent = new SetContentEvent();
+    public static UnityEventInt roomMovedEvent = new UnityEventInt();
     public Button exitGameButton;
     public Button minimapButton;
     public Button[] minimapDirButtons;
@@ -25,11 +27,20 @@ public class UIManager : MonoBehaviour
     public GameObject actionText;
     public Text countDownText;
 
+    private Dictionary<RoomType, Sprite> mapSprite = new Dictionary<RoomType, Sprite>();
+    private GameObject[] mapGrid;
     private Button lastMinimapDirBtn;
     private Stack<GameObject> menuStack = new Stack<GameObject>();
+    private int selectRoom;
 
     private void Awake() {
         instance = this;
+        selectRoom = -1;
+        mapSprite[RoomType.BattleRoom] = Resources.Load<Sprite>("Icons/sword");
+        mapSprite[RoomType.BossRoom] = Resources.Load<Sprite>("Icons/scroll");
+        mapSprite[RoomType.RewardRoom] = Resources.Load<Sprite>("Icons/coins");
+        mapSprite[RoomType.StartingRoom] = Resources.Load<Sprite>("Icons/helmets");
+        mapSprite[RoomType.EmptyRoom] = Resources.Load<Sprite>("Icons/frame");
     }
 
     void Start(){
@@ -50,6 +61,10 @@ public class UIManager : MonoBehaviour
         {
             ChangeActionText(content, value);
         });
+        minimapDirButtons[0].onClick.AddListener(() => { moveMinimapFrame(0); });
+        minimapDirButtons[1].onClick.AddListener(() => { moveMinimapFrame(1); });
+        minimapDirButtons[2].onClick.AddListener(() => { moveMinimapFrame(2); });
+        minimapDirButtons[3].onClick.AddListener(() => { moveMinimapFrame(3); });
     }
 
     void OnClick(GameObject go)
@@ -63,9 +78,22 @@ public class UIManager : MonoBehaviour
             HideAndActive(minimapMenu);
         }
         else if(go.name.StartsWith("room")){
-            // Debug.Log("room clicked" + go.name);
-            SiblingCheck(int.Parse(go.name.Substring("room".Length)));
+            Debug.Log("room clicked" + go.name);
+            selectRoom = int.Parse(go.name.Substring("room".Length));
+            SiblingCheck(selectRoom);
         }
+    }
+
+    public void moveMinimapFrame(int dir){
+        if(selectRoom == -1) return;
+        int pace = GameManager.instance.GetPace(selectRoom, (Direction)dir);
+        Debug.Log(pace);
+        Sprite save = mapGrid[selectRoom + pace].GetComponent<Image>().sprite;
+        mapGrid[selectRoom + pace].GetComponent<Image>().sprite = mapGrid[selectRoom].GetComponent<Image>().sprite;
+        mapGrid[selectRoom].GetComponent<Image>().sprite = save;
+        roomMovedEvent.Invoke(selectRoom);
+        selectRoom = selectRoom + pace;
+        SiblingCheck(selectRoom);
     }
 
     public void SetCountDownText(string text){
@@ -105,8 +133,9 @@ public class UIManager : MonoBehaviour
     /// <summary>
     /// Draw map of the dungeon on GUI minimap
     /// </summary>
-    public void DrawMinimap(){
+    public void BuildMinimap(){
         int mapSize = GameManager.instance.mapSize;
+        mapGrid = new GameObject[mapSize * mapSize];
         RectTransform minimapRT = minimap.GetComponent<RectTransform>();
         float width = minimapRT.rect.width / mapSize;
         float height = minimapRT.rect.height / mapSize;
@@ -125,20 +154,14 @@ public class UIManager : MonoBehaviour
                 RectTransform rt = room.AddComponent<RectTransform>();
                 rt.anchoredPosition = new Vector2(posX + width * j, posY + height * i);
                 rt.sizeDelta = new Vector2(width, height);
-                
+
                 room.AddComponent<CanvasRenderer>();
                 Image img = room.AddComponent<Image>();
-                img.sprite = Resources.Load<Sprite>("Icons/frame");
-                switch (GameManager.instance.GetRoomTypeByIndex(roomIdx))
-                {
-                    case RoomType.BattleRoom: img.sprite = Resources.Load<Sprite>("Icons/sword");break;
-                    case RoomType.BossRoom: img.sprite = Resources.Load<Sprite>("Icons/scroll");break;
-                    case RoomType.RewardRoom: img.sprite = Resources.Load<Sprite>("Icons/coins");break;
-                    case RoomType.StartingRoom: img.sprite = Resources.Load<Sprite>("Icons/helmets");break;
-                    case RoomType.EmptyRoom: img.sprite = Resources.Load<Sprite>("Icons/frame");break;
-                    default:break;
-                }
+                // img.sprite = Resources.Load<Sprite>("Icons/frame");
+                img.sprite = mapSprite[GameManager.instance.GetRoomTypeByIndex(roomIdx)];
+                
                 UGUIEventListener.Get(room).onClick = OnClick;
+                mapGrid[roomIdx] = room;
             }
         }
     }

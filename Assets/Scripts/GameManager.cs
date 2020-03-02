@@ -231,7 +231,7 @@ namespace DungeonOfVinheim
             battleRoomExtra.SetActive(false);
             rewardRoomExtra.SetActive(false);
             bossRoomExtra.SetActive(false);
-            UIManager.instance.DrawMinimap();
+            UIManager.instance.BuildMinimap();
             
              // load & justify player position
             if(localPlayerInstance == null){
@@ -304,6 +304,8 @@ namespace DungeonOfVinheim
             Hashtable roomProperties = PhotonNetwork.CurrentRoom.CustomProperties;
             object[] gridMap = (object[])roomProperties[mapDataKey];
             BuildAndCreateMap(gridMap);
+            UnityAction<int> moveRoom = MasterMoveRoom;
+            UIManager.roomMovedEvent.AddListener(moveRoom);
         }
 
         // room can only be moved to the empty room's position
@@ -313,7 +315,8 @@ namespace DungeonOfVinheim
             Room T = rooms[emptyRoomNumber];
             rooms[emptyRoomNumber] = rooms[roomNumber];
             rooms[roomNumber] = T;
-            // update empty room number
+            // NOTE: PLAYER IN THE MOVING ROOM
+            if(roomNumberLocal == roomNumber) roomNumberLocal = emptyRoomNumber;
             emptyRoomNumber = roomNumber;
         }
 
@@ -341,22 +344,22 @@ namespace DungeonOfVinheim
             }
         }
 
-        private int GetPace(Direction direction){
+        public int GetPace(int roomIdx, Direction direction){
             int pace;
             switch (direction)
             {
                 // check if the room is on the edge
                 case Direction.Down:
-                    pace = roomNumberLocal / mapSize == 0 ? 0 : -mapSize;
+                    pace = roomIdx / mapSize == 0 ? 0 : -mapSize;
                     break;
                 case Direction.Left:
-                    pace = roomNumberLocal % mapSize == 0 ? 0 : -1;
+                    pace = roomIdx % mapSize == 0 ? 0 : -1;
                     break;
                 case Direction.Right:
-                    pace = roomNumberLocal % mapSize == mapSize - 1 ? 0 : 1;
+                    pace = roomIdx % mapSize == mapSize - 1 ? 0 : 1;
                     break;
                 case Direction.Up:
-                    pace = roomNumberLocal / mapSize == mapSize - 1 ? 0 : mapSize;
+                    pace = roomIdx / mapSize == mapSize - 1 ? 0 : mapSize;
                     break;
                 default:
                     pace = 0;
@@ -370,7 +373,7 @@ namespace DungeonOfVinheim
         /// </summary>
         public void HandleEntranceEvent(Direction direction)
         {
-            int pace = GetPace(direction);
+            int pace = GetPace(roomNumberLocal, direction);
             if (pace == 0 || rooms[roomNumberLocal + pace].Empty())
             {
                 Debug.Log("BLOCKED");
@@ -469,7 +472,7 @@ namespace DungeonOfVinheim
             ActionTriggerEvent.RemoveAllListeners();
             GameObject entrance = GameObject.Find("Entrance" + direction.ToString());
 
-            int pace = GetPace(direction);
+            int pace = GetPace(roomNumberLocal, direction);
             // NOTE: no TRIGGER EXIT event now so manually set action text false
             UIManager.setActionTextActiveEvent.Invoke(false);
             // TODO: play smoke animation & player's open door animation maybe you need to reposition the player
