@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using Photon.Pun;
-using DungeonOfVinheim;
 
 // might contiains other triggers later on like items or monsters...?
 public enum TriggerEventType{
@@ -15,7 +14,8 @@ public enum Direction{
     Down,
     Left,
     Right,
-    Up
+    Up,
+    Center
 }
 
 public class AnimationEvent : UnityEvent{}
@@ -47,7 +47,7 @@ public class ItemTrigger : MonoBehaviourPun
                 UIManager.setActionTextContentEvent.Invoke(message, prefix);
                 UIManager.setActionTextActiveEvent.Invoke(true);
                 if(type == TriggerEventType.Entrance){
-                    itemAction = delegate () { GameManager.instance.HandleEntranceEvent(direction); };
+                    itemAction = delegate () { GameManager.Instance.HandleEntranceEvent(direction); };
                     GameManager.ActionTriggerEvent.AddListener(itemAction);
                 }
             // }
@@ -70,12 +70,4 @@ public class ItemTrigger : MonoBehaviourPun
             // else if(collider.gameObject.tag == "Host")
         }
     }
-    
-    // void OnTriggerStay(Collider collider){
-    //     if(collider.gameObject == GameManager.localPlayerInstance){
-    //         if(type == TriggerEventType.Entrance) triggerEventStay.direction = direction;
-    //         triggerEventStay.type = type;
-    //         triggerEventStay.Invoke(this.gameObject);
-    //     }
-    // }
 }

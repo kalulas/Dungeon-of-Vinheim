@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using Photon.Pun;
-using DungeonOfVinheim;
 
 namespace Invector.vCharacterController
 {
@@ -36,15 +35,10 @@ namespace Invector.vCharacterController
                 if(GameManager.localPlayerInstance == null)
                 GameManager.localPlayerInstance = this.gameObject;
             }
-            else{
-                Debug.Log("Add new player in other Players");
-                GameManager.instance.otherPlayers.Add(this.gameObject);
-            }
 
         }
 
         private void OnDestroy() {
-            GameManager.instance.otherPlayers.Remove(this.gameObject);
         }
 
         protected override void Start()
