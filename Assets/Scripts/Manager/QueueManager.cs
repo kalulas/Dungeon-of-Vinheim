@@ -5,72 +5,97 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class QueueManager : Singleton<QueueManager>
+public class QueueManager : SingletonMonoBehaviour<QueueManager>
 {
     private bool waiting = false;
-    ExitGames.Client.Photon.Hashtable roomProperties;
+    private int[] queue = new int[4] { 0, 0, 0, 0 };
 
-    public void SetWaiting(bool value) {
-        waiting = value;
+    protected override void Init() {
+        MessageCenter.Instance.AddEventListener(GLEventCode.EndRoomTransition, Reset);
+    }
+
+    private void UpdateQueue() {
+        queue[(int)Direction.Down] = (int)RoomPropManager.Instance.GetProp(RoomPropType.WaitDown);
+        queue[(int)Direction.Left] = (int)RoomPropManager.Instance.GetProp(RoomPropType.WaitLeft);
+        queue[(int)Direction.Right] = (int)RoomPropManager.Instance.GetProp(RoomPropType.WaitRight);
+        queue[(int)Direction.Up] = (int)RoomPropManager.Instance.GetProp(RoomPropType.WaitUp);
+    }
+
+    private bool CheckBalance(Direction newDir, out Direction original) {
+        for (int i = 0; i < queue.Length; i++) {
+            if(i != (int)newDir && queue[i] == queue[(int)newDir]) {
+                original = (Direction)i;
+                return true;
+            }
+        }
+        original = Direction.Down;
+        return false;
+    }
+
+    private bool FindAnotherDir(Direction quitDir, out Direction another, int playerCount) {
+        float thres = Mathf.Ceil((playerCount - 1) / 2);
+        for (int i = 0; i < queue.Length; i++) {
+            if (queue[i] > thres) {
+                another = (Direction)i;
+                return true;
+            }
+        }
+        another = Direction.Down;
+        return false;
+    }
+
+    public void Reset(object data) {
+        if (PhotonNetwork.IsMasterClient) {
+            RoomPropManager.Instance.ResetQueue();
+        }
+        waiting = false;
+        for (int i = 0; i < queue.Length; i++) {
+            queue[i] = 0;
+        }
     }
 
     public void QueueAtDirection(Direction direction) {
-        roomProperties = PhotonNetwork.CurrentRoom.CustomProperties;
         RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
         int playerInRoom = PhotonNetwork.CurrentRoom.PlayerCount;
-        Direction[] dirs = new Direction[] { Direction.Down, Direction.Left, Direction.Right, Direction.Up };
+
+        UpdateQueue();
 
         if (!waiting) {
+
             waiting = true;
-            roomProperties[direction.ToString()] = (int)roomProperties[direction.ToString()] + 1;
-            PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
+            queue[(int)direction]++;
+            RoomPropManager.Instance.SetProp((RoomPropType)direction + 4, queue[(int)direction]);
 
-            bool waitBalance = false;
-            Direction originalDir = Direction.Down;
-
-            foreach (Direction dir in dirs) {
-                if ((int)roomProperties[dir.ToString()] == (int)roomProperties[direction.ToString()] && dir != direction) {
-                    if ((int)roomProperties[dir.ToString()] == Mathf.Ceil((playerInRoom - 1) / 2)) {
-                        originalDir = dir;
-                        waitBalance = true;
-                        break;
-                    }
-                }
-            }
             // same players at different entrance
-            if (waitBalance) {
-                GameManager.SendNetworkEvent(EventCode.CancelEnterRoomCountDown, originalDir, raiseEventOptions);
+            Direction originalDir = Direction.Down;
+            if (CheckBalance(direction, out originalDir)) {
+                MessageCenter.Instance.PostNetEvent(NetEventCode.CancelEnterRoomCountDown, originalDir, raiseEventOptions);
                 // cancel count down event with originalDir
-            } else if (playerInRoom == 1 || (int)roomProperties[direction.ToString()] == playerInRoom - 1) {
-                GameManager.SendNetworkEvent(EventCode.CancelEnterRoomCountDown, direction, raiseEventOptions);
-                GameManager.SendNetworkEvent(EventCode.EnterRoom, direction, raiseEventOptions);
+            } else if (playerInRoom == 1 || queue[(int)direction] == playerInRoom - 1) {
+                MessageCenter.Instance.PostNetEvent(NetEventCode.CancelEnterRoomCountDown, direction, raiseEventOptions);
+                MessageCenter.Instance.PostNetEvent(NetEventCode.EnterRoom, direction, raiseEventOptions);
                 // cancel count down event with direction
                 // invoke enter room event with direction
-            } else if ((int)roomProperties[direction.ToString()] == Mathf.Ceil((playerInRoom - 1) / 2)) {
-                GameManager.SendNetworkEvent(EventCode.StartEnterRoomCountDown, direction, raiseEventOptions);
+            } else if (queue[(int)direction] == Mathf.Ceil((playerInRoom - 1) / 2)) {
+                MessageCenter.Instance.PostNetEvent(NetEventCode.StartEnterRoomCountDown, direction, raiseEventOptions);
             }
         } else {
             // logic of entrance's queue : press E second time
             waiting = false;
 
-            roomProperties[direction.ToString()] = (int)roomProperties[direction.ToString()] - 1;
-            PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
-
-            bool waitUnbalance = false;
+            if(queue[(int)direction] == 0) {
+                Debug.LogError("Inconsistent! No player at Direction " + direction);
+            } else {
+                queue[(int)direction]--;
+            }
+            RoomPropManager.Instance.SetProp((RoomPropType)direction + 4, queue[(int)direction]);
             Direction anotherDir = Direction.Down;
 
-            foreach (Direction dir in dirs) {
-                if ((int)roomProperties[dir.ToString()] > Mathf.Ceil((playerInRoom - 1) / 2)) {
-                    waitUnbalance = true;
-                    anotherDir = dir;
-                    break;
-                }
-            }
-            if (waitUnbalance) {
-                GameManager.SendNetworkEvent(EventCode.StartEnterRoomCountDown, anotherDir, raiseEventOptions);
+            if (FindAnotherDir(direction, out anotherDir, playerInRoom)) {
+                MessageCenter.Instance.PostNetEvent(NetEventCode.StartEnterRoomCountDown, anotherDir, raiseEventOptions);
                 // invoke count down event with anotherDir
-            } else if ((int)roomProperties[direction.ToString()] < Mathf.Ceil((playerInRoom - 1) / 2)) {
-                GameManager.SendNetworkEvent(EventCode.CancelEnterRoomCountDown, direction, raiseEventOptions);
+            } else if (queue[(int)direction] < Mathf.Ceil((playerInRoom - 1) / 2)) {
+                MessageCenter.Instance.PostNetEvent(NetEventCode.CancelEnterRoomCountDown, direction, raiseEventOptions);
                 // cancel count down event
             }
 

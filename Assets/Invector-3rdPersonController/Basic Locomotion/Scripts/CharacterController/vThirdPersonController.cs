@@ -32,8 +32,8 @@ namespace Invector.vCharacterController
             if (photonView.IsMine)
             {
                 // in fact unnecessary just in case
-                if(GameManager.localPlayerInstance == null)
-                GameManager.localPlayerInstance = this.gameObject;
+                if(GameManager.localPlayer == null)
+                GameManager.localPlayer = this.gameObject;
             }
 
         }

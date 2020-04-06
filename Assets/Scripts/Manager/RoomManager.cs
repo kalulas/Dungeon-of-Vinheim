@@ -7,16 +7,14 @@ using Invector;
 
 using Photon.Pun;
 
-public class MoveRoomEvent : UnityEvent<int, Direction> { }
-
-public class RoomManager : SingletonMonoBehaviour<RoomManager>
-{
+public class RoomManager : SingletonMonoBehaviour<RoomManager> {
     public LoadObject[] EnemiesSpawns { get; private set; }
     public Range2DRect ObstaclesInnerBound { get; private set; }
     public Range2DRect ObstaclesOuterBound { get; private set; }
-    public MoveRoomEvent moveRoomEvent = new MoveRoomEvent();
 
     public int MapSize { get; private set; } = 5;
+    public bool entranceAvailable { get; private set; } = true;
+    private Dictionary<Direction, GameObject> EntrancesDic;
     private GameObject defaultRoom;
     private GameObject WaypointArea;
     private List<Room> rooms = new List<Room>();
@@ -35,7 +33,17 @@ public class RoomManager : SingletonMonoBehaviour<RoomManager>
         ObstaclesInnerBound = obstaclesRangeConfig.innerBound;
         ObstaclesOuterBound = obstaclesRangeConfig.outerBound;
 
-        moveRoomEvent.AddListener(MoveRoomLogic);
+        EntrancesDic = new Dictionary<Direction, GameObject>() {
+            { Direction.Down, GameObject.Find("EntranceDown") },
+            { Direction.Left, GameObject.Find("EntranceLeft") },
+            { Direction.Right, GameObject.Find("EntranceRight") },
+            { Direction.Up, GameObject.Find("EntranceUp") },
+        };
+
+        //moveRoomEvent.AddListener(MoveRoomLogic);
+        MessageCenter.Instance.AddObserver(NetEventCode.MoveRoom, MoveRoomLogic);
+        MessageCenter.Instance.AddEventListener(GLEventCode.StartRoomTransition, OnRoomTransitionStart);
+        MessageCenter.Instance.AddEventListener(GLEventCode.EndRoomTransition, OnRoomTransitionEnd);
     }
 
     public object[] SetUpRoomMap() {
@@ -54,7 +62,7 @@ public class RoomManager : SingletonMonoBehaviour<RoomManager>
         return roomtypes;
     }
 
-    public void BuildAndCreateMap(RoomType[] roomtypes) {
+    public void BuildAndCreateMap(object[] roomtypes) {
         Room.roomsContainer = new GameObject("rooms");
         defaultRoom = GameObject.Find("Default Room");
         WaypointArea = GameObject.Find("WaypointArea");
@@ -66,7 +74,7 @@ public class RoomManager : SingletonMonoBehaviour<RoomManager>
         GameObject battleRoomExtra = Instantiate(Resources.Load<GameObject>("Prefabs/RoomExtras/Battle_Room_Extra"));
         GameObject bossRoomExtra = Instantiate(Resources.Load<GameObject>("Prefabs/RoomExtras/Boss_Room_Extra"));
         for (int i = 0; i < MapSize * MapSize; i++) {
-            switch (roomtypes[i]) {
+            switch ((RoomType)roomtypes[i]) {
                 case RoomType.EmptyRoom:
                     rooms.Add(ScriptableObject.CreateInstance<Room>().SetUp(roomNumber++, RoomType.EmptyRoom));
                     EmptyRoomNumber = i;
@@ -168,7 +176,11 @@ public class RoomManager : SingletonMonoBehaviour<RoomManager>
 
     // room can only be moved to the empty room's position
     // triggered on Move Button Down
-    public void MoveRoomLogic(int selectIdx, Direction dir) {
+    private void MoveRoomLogic(object data) {
+        object[] content = (object[])data;
+        int selectIdx = (int)content[0];
+        Direction dir = (Direction)content[1];
+
         int moveTo = selectIdx + GetPace(selectIdx, dir);
 
         if (selectIdx == moveTo) {
@@ -188,5 +200,27 @@ public class RoomManager : SingletonMonoBehaviour<RoomManager>
         }
         // move from selectIdx to moveTo, now selectIdx is empty
         EmptyRoomNumber = selectIdx;
+    }
+
+    private void OnRoomTransitionStart(object data) {
+        Direction direction = (Direction)data;
+        entranceAvailable = false;
+        if (EntrancesDic.ContainsKey(direction)) {
+            GameObject entrance = EntrancesDic[direction];
+            entrance.GetComponent<Entrance>().PlayAnimation();
+            WaitTimeManager.CreateCoroutine(false, 1.0f, () => {
+                MessageCenter.Instance.PostGLEvent(GLEventCode.EndRoomTransition, direction);
+            });
+        }
+    }
+
+    private void OnRoomTransitionEnd(object data) {
+        Direction direction = (Direction)data;
+        LoadRoomAtDirection(direction);
+        if (EntrancesDic.ContainsKey(direction)) {
+            GameObject entrance = EntrancesDic[direction];
+            entrance.GetComponent<Entrance>().ResetAnimation();
+        }
+        entranceAvailable = true;
     }
 }

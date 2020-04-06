@@ -59,7 +59,7 @@ public class Room : ScriptableObject {
         roomExtra = extra;
         roomNumber = number;
         roomExtraObjectsContainer = new GameObject("room" + roomNumber + roomType);
-        roomExtraObjectsContainer.GetComponent<Transform>().SetParent(roomsContainer.GetComponent<Transform>());
+        roomExtraObjectsContainer.transform.SetParent(roomsContainer.transform);
         if (PhotonNetwork.IsMasterClient) {
             // TODO: create enemies & items here
             switch (type) {
@@ -119,16 +119,14 @@ public class Room : ScriptableObject {
                 obstacle.transform.SetParent(obstaclesContainer.transform);
             }
 
-            ExitGames.Client.Photon.Hashtable roomProperties = new ExitGames.Client.Photon.Hashtable();
-            roomProperties[GameManager.enemyListKey + roomNumber] = enemyViewIds;
-            roomProperties[GameManager.obstaclePathKey + roomNumber] = obstaclePaths;
-            roomProperties[GameManager.obstaclePosKey + roomNumber] = obstaclePositions;
-            PhotonNetwork.CurrentRoom.SetCustomProperties(roomProperties);
+            RoomPropManager.Instance.SetProp(RoomPropType.EnemyList, roomNumber, enemyViewIds);
+            RoomPropManager.Instance.SetProp(RoomPropType.ObstaclePath, roomNumber, obstaclePaths);
+            RoomPropManager.Instance.SetProp(RoomPropType.ObstaclePosition, roomNumber, obstaclePositions);
+
         } else {
-            ExitGames.Client.Photon.Hashtable roomProperties = PhotonNetwork.CurrentRoom.CustomProperties;
-            object[] enemyViewIds = (object[])roomProperties[GameManager.enemyListKey + roomNumber];
-            string[] obstaclePaths = (string[])roomProperties[GameManager.obstaclePathKey + roomNumber];
-            Vector3[] obstaclePos = (Vector3[])roomProperties[GameManager.obstaclePosKey + roomNumber];
+            object[] enemyViewIds = (object[])RoomPropManager.Instance.GetProp(RoomPropType.EnemyList, roomNumber);
+            string[] obstaclePaths = (string[])RoomPropManager.Instance.GetProp(RoomPropType.ObstaclePath, roomNumber);
+            Vector3[] obstaclePos = (Vector3[])RoomPropManager.Instance.GetProp(RoomPropType.ObstaclePosition, roomNumber);
             if (enemyViewIds != null) {
                 foreach (int viewID in enemyViewIds) {
                     if (viewID == -1) break;

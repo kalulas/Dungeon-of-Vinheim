@@ -415,8 +415,8 @@ GameObject:
   - component: {fileID: 8369486110129988855}
   - component: {fileID: 4363367283524083898}
   - component: {fileID: 5859850793131316496}
-  - component: {fileID: 6246808590006156702}
-  m_Layer: 0
+  - component: {fileID: 5209530808554389368}
+  m_Layer: 13
   m_Name: Entrance
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -469,7 +469,7 @@ Animation:
   m_PlayAutomatically: 0
   m_AnimatePhysics: 0
   m_CullingType: 0
---- !u!114 &6246808590006156702
+--- !u!114 &5209530808554389368
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -478,13 +478,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 5789470963287294490}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4082a376096a524681bc3fdf1be2c06, type: 3}
+  m_Script: {fileID: 11500000, guid: 8201ce2658145f140b99804139a973c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 0
+  defaultDiscription: 1
+  Discription: 
+  hasAnimation: 1
+  animationPlayed: DoorOpen
   direction: 0
-  message: enter next room
-  prefix: 1
 --- !u!1001 &4804999880807279447
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -662,6 +663,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: AffectCameraZoom
       objectReference: {fileID: 0}
+    - target: {fileID: 158966, guid: 7ddf8511e259b61448ee08c0759223e2, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 479156, guid: 7ddf8511e259b61448ee08c0759223e2, type: 3}
       propertyPath: m_LocalPosition.x
       value: 9.9247875
@@ -831,6 +836,10 @@ PrefabInstance:
     - target: {fileID: 151566, guid: 7b2cf94cdab0ced489fd2a15c809d7b3, type: 3}
       propertyPath: m_TagString
       value: AffectCameraZoom
+      objectReference: {fileID: 0}
+    - target: {fileID: 151566, guid: 7b2cf94cdab0ced489fd2a15c809d7b3, type: 3}
+      propertyPath: m_Layer
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 427910, guid: 7b2cf94cdab0ced489fd2a15c809d7b3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1446,6 +1455,10 @@ PrefabInstance:
     - target: {fileID: 116744, guid: 5afc051ea82884847b27233ef41ff811, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 116744, guid: 5afc051ea82884847b27233ef41ff811, type: 3}
+      propertyPath: m_Layer
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 440134, guid: 5afc051ea82884847b27233ef41ff811, type: 3}
       propertyPath: m_LocalPosition.x

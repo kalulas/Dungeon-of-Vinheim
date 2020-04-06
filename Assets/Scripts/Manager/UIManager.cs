@@ -8,29 +8,22 @@ using Invector.vCharacterController;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class SetActiveEvent : UnityEvent<bool>{}
-public class SetContentEvent : UnityEvent<string, bool>{}
 public class UnityEventInt : UnityEvent<int>{}
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
-    public static SetActiveEvent setActionTextActiveEvent = new SetActiveEvent();
-    public static SetContentEvent setActionTextContentEvent = new SetContentEvent();
-    public static UnityEventInt localRoomMovedEvent = new UnityEventInt();
-    public MoveRoomEvent moveRoomEvent = new MoveRoomEvent();
 
     public Button exitGameButton;
 
     public Button minimapButton;
-    private Button lastMinimapDirBtn;
     public Button[] minimapDirButtons;
 
     public GameObject mainMenu;
     public GameObject minimap;
     public GameObject roomBtnPrefab;
     public GameObject minimapMenu;
-    public GameObject actionText;
+    public Text actionText;
     public Text countDownText;
 
     private Dictionary<RoomType, Sprite> mapSprite = new Dictionary<RoomType, Sprite>();
@@ -48,26 +41,19 @@ public class UIManager : MonoBehaviour
         mapSprite[RoomType.EmptyRoom] = Resources.Load<Sprite>("Icons/frame");
     }
 
-    void Start(){
+    private void Start(){
+        MessageCenter.Instance.AddEventListener(GLEventCode.DisplayInteractable, ChangeActionText);
+        MessageCenter.Instance.AddEventListener(GLEventCode.StartRoomTransition, OnRoomTransitionStart);
+        MessageCenter.Instance.AddEventListener(GLEventCode.UpdateEntranceCountDown, OnCountDownUpdate);
+        MessageCenter.Instance.AddObserver(NetEventCode.CancelEnterRoomCountDown, OnCountDownCancel);
+        MessageCenter.Instance.AddObserver(NetEventCode.MoveRoom, MoveRoomMinimap);
+
         exitGameButton.onClick.AddListener(delegate (){
             OnClick(exitGameButton.gameObject);
         });
         minimapButton.onClick.AddListener(delegate (){
             OnClick(minimapButton.gameObject);
         });
-        // DrawMinimap();
-        // use GUI to show information and ask for permission
-        // information depens on event's message
-        setActionTextActiveEvent.AddListener(delegate (bool value)
-        {
-            SetActionTextActive(value);
-        });
-        setActionTextContentEvent.AddListener(delegate (string content, bool value)
-        {
-            ChangeActionText(content, value);
-        });
-
-        moveRoomEvent.AddListener(MoveRoomMinimap);
 
         if(minimapDirButtons.Length != 4) {
             Debug.LogError("Size of minimapDirButtons is not 4! ");
@@ -82,7 +68,7 @@ public class UIManager : MonoBehaviour
     private void SendMoveRoomNetEvent(int roomIdx, Direction dir) {
         object[] content = { roomIdx, dir };
         RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
-        GameManager.SendNetworkEvent(EventCode.MoveRoom, content, raiseEventOptions);
+        MessageCenter.Instance.PostNetEvent(NetEventCode.MoveRoom, content, raiseEventOptions);
     }
 
     void OnClick(GameObject go)
@@ -107,18 +93,17 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void MoveRoomMinimap(int roomIdx, Direction dir){
-        int moveTo = roomIdx + RoomManager.Instance.GetPace(selectRoom, dir);
+    public void MoveRoomMinimap(object data){
+        object[] content = (object[])data;
+        int roomIdx = (int)content[0];
+        Direction dir = (Direction)content[1];
 
+        int moveTo = roomIdx + RoomManager.Instance.GetPace(roomIdx, dir);
         Sprite save = mapGrid[moveTo].sprite;
         mapGrid[moveTo].sprite = mapGrid[roomIdx].sprite;
         mapGrid[roomIdx].sprite = save;
 
         UpdateDirBtns(selectRoom);
-    }
-
-    public void SetCountDownText(string text){
-        if(countDownText) countDownText.text = text;
     }
 
     public void HideAndActive(GameObject menu){
@@ -130,7 +115,7 @@ public class UIManager : MonoBehaviour
     /// <summary>
     /// Draw map of the dungeon on GUI minimap
     /// </summary>
-    public void BuildMinimap(RoomType[] roomtypes){
+    public void BuildMinimap(object[] roomtypes){
         int mapSize = RoomManager.Instance.MapSize;
         mapGrid = new Image[mapSize * mapSize];
         RectTransform minimapRT = minimap.GetComponent<RectTransform>();
@@ -147,7 +132,7 @@ public class UIManager : MonoBehaviour
                 roomBtn.transform.localScale = new Vector3(width / 100f, height / 100f, 0f) * 0.7f;
 
                 roomBtn.GetComponent<RectTransform>().anchoredPosition = new Vector2(posX + width * j, posY + height * i);
-                RoomType type = roomtypes[roomIdx];
+                RoomType type = (RoomType)roomtypes[roomIdx];
                 if(type != RoomType.EmptyRoom) {
                     roomBtn.GetComponent<Image>().sprite = mapSprite[type];
                 }
@@ -156,17 +141,26 @@ public class UIManager : MonoBehaviour
             }
         }
     }
-
-    public void SetActionTextActive(bool value){
-        actionText.SetActive(value);
-    }
     
-    /// <summary>
-    /// <para name="value">value: Used to decide whether to add "PRESS E TO" prefix or not </para>
-    /// </summary>
-    public void ChangeActionText(string message, bool value){
-        string prefix = value ? "PRESS E TO " : "";
-        actionText.GetComponent<Text>().text = prefix + message;
+    public void ChangeActionText(object message){
+        actionText.text = (string)message;
+    }
+
+    private void OnRoomTransitionStart(object data) {
+        countDownText.text = string.Empty;
+        actionText.text = string.Empty;
+        // might have other operations
+    }
+
+    public void OnCountDownUpdate(object data) {
+        string _text = ((float)data).ToString();
+        if (countDownText) {
+            countDownText.text = _text;
+        }
+    }
+
+    private void OnCountDownCancel(object data) {
+        countDownText.text = string.Empty;
     }
 
     void Update()
@@ -176,23 +170,15 @@ public class UIManager : MonoBehaviour
             if (menuStack.Count == 0) {
                 HideAndActive(mainMenu);
                 // unlock cursor from the centor of screen, show cursor and lock all input(basic and melee)
-                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().LockCursor(true);
-                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().ShowCursor(true);
-                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(true);
-                GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(true);
-            }
-            else
-            {
+                MessageCenter.Instance.PostGLEvent(GLEventCode.EnterBrowseMode);
+            } else {
                 menuStack.Peek().SetActive(false);
                 menuStack.Pop();
-                if (menuStack.Count != 0) menuStack.Peek().SetActive(true);
-                else
-                {
+                if (menuStack.Count != 0) {
+                    menuStack.Peek().SetActive(true);
+                } else {
                     // lock cursor again, hide cursor and unlock all input(basic and melee)
-                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().LockCursor(false);
-                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().ShowCursor(false);
-                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockAllInput(false);
-                    GameManager.localPlayerInstance.GetComponent<vThirdPersonInput>().SetLockCameraInput(false);
+                    MessageCenter.Instance.PostGLEvent(GLEventCode.ExitBrowseMode);
                 }
             }
         }    

@@ -64,6 +64,7 @@ namespace Invector.vCharacterController
             InitFadeText();
             if (debugPanel != null)
                 debugText = debugPanel.GetComponentInChildren<Text>();
+            MessageCenter.Instance.AddEventListener(GLEventCode.DisplayFadeText, OnFadeTextDisplay);
         }
 
         public void Init(vThirdPersonController cc)
@@ -139,6 +140,10 @@ namespace Invector.vCharacterController
                 durationTimer = 0f;
                 timer = 0f;
             }
+        }
+
+        private void OnFadeTextDisplay(object data) {
+            ShowText((string)data);
         }
 
         void UpdateSliders(vThirdPersonController cc)

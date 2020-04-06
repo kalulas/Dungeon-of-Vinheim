@@ -76,6 +76,14 @@ namespace Invector.vCharacterController
 
         protected virtual void Start()
         {
+            MessageCenter.Instance.AddObserver(NetEventCode.StartEnterRoomCountDown, LockAllInputOnEvent);
+            MessageCenter.Instance.AddObserver(NetEventCode.CancelEnterRoomCountDown, UnlockAllInputOnEvent);
+
+            MessageCenter.Instance.AddEventListener(GLEventCode.StartRoomTransition, LockAllInputOnEvent);
+            MessageCenter.Instance.AddEventListener(GLEventCode.EndRoomTransition, UnlockAllInputOnEvent);
+            MessageCenter.Instance.AddEventListener(GLEventCode.EnterBrowseMode, OnBrowseModeEnter);
+            MessageCenter.Instance.AddEventListener(GLEventCode.ExitBrowseMode, OnBrowseModeExit);
+
             cc = GetComponent<vThirdPersonController>();
 
             if (cc != null)
@@ -149,6 +157,32 @@ namespace Invector.vCharacterController
 
         #region Generic Methods
         // you can call this methods anywhere in the inspector or third party assets to have better control of the controller or cutscenes
+
+        private void LockAllInputOnEvent(object data) {
+            SetLockAllInput(true);
+        }
+
+        private void UnlockAllInputOnEvent(object data) {
+            SetLockAllInput(false);
+        }
+
+        private void OnBrowseModeEnter(object data) {
+            if(gameObject == GameManager.localPlayer) {
+                LockCursor(true);
+                ShowCursor(true);
+                SetLockAllInput(true);
+                SetLockCameraInput(true);
+            }
+        }
+
+        private void OnBrowseModeExit(object data) {
+            if (gameObject == GameManager.localPlayer) {
+                LockCursor(false);
+                ShowCursor(false);
+                SetLockAllInput(false);
+                SetLockCameraInput(false);
+            }
+        }
 
         /// <summary>
         /// Lock all the Input from the Player
