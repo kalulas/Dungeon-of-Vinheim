@@ -14,7 +14,14 @@ public class Entrance : InteractableObject
 {
     public Direction direction;
 
+    protected override void Init() {
+        base.Init();
+        MessageCenter.Instance.AddEventListener(GLEventCode.EndRoomTransition, OnEndAction);
+        MessageCenter.Instance.AddObserver(NetEventCode.CancelEnterRoomCountDown, OnEndAction);
+    }
+
     public override void OnAction() {
+        base.OnAction();
         if (RoomManager.Instance.entranceAvailable) {
             if (!RoomManager.Instance.AvailableAhead(direction)) {
                 MessageCenter.Instance.PostGLEvent(GLEventCode.DisplayFadeText, "BLOCKED: NO ROOM AHEAD");
@@ -23,6 +30,12 @@ public class Entrance : InteractableObject
             }
         } else {
             MessageCenter.Instance.PostGLEvent(GLEventCode.DisplayFadeText, "BLOCKED: CLOSED BY HOST");
+        }
+    }
+
+    private void OnEndAction(object data) {
+        if((Direction)data == direction) {
+            EndAction();
         }
     }
 }

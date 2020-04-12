@@ -19,7 +19,10 @@ public class ActionManager : SingletonMonoBehaviour<ActionManager>
     private void DisplayDiscription() {
         string message = string.Empty;
         if (IObjectList.Count != 0) {
-            message = IObjectList.Peek().Discription;
+            InteractableObject IObject = IObjectList.Peek();
+            if (!IObject.duringAction) {
+                message = IObject.Discription;
+            }
         }
         MessageCenter.Instance.PostGLEvent(GLEventCode.DisplayInteractable, message);
     }
@@ -28,7 +31,6 @@ public class ActionManager : SingletonMonoBehaviour<ActionManager>
         if (!IObjectList.Contains(IObject)) {
             IObjectList.Enqueue(IObject);
             Debug.Log("AddAction, Current Queue: " + IObjectList.Count);
-            DisplayDiscription();
         } else {
             //Debug.Log("Action already in ActionList!");
         }
@@ -47,17 +49,21 @@ public class ActionManager : SingletonMonoBehaviour<ActionManager>
 
             IObjectList = new Queue<InteractableObject>(tmpActionList);
             Debug.Log("RemoveAction, Current Queue: " + IObjectList.Count);
-            DisplayDiscription();
         } else {
             //Debug.LogFormat("Action {0} not found in ActionList", IObject);
         }
     }
 
     private void Update() {
+        DisplayDiscription();
         if (Input.GetButtonDown("A") && IObjectList.Count != 0) {
-            InteractableObject IObject = IObjectList.Dequeue();
-            IObject.OnAction();
-            DisplayDiscription();
+            InteractableObject IObject = IObjectList.Peek();
+            if (IObject.onlyOnce) {
+                IObjectList.Dequeue();
+            } 
+            if (IObject.gameObject.activeSelf && !IObject.duringAction) {
+                IObject.OnAction();
+            }
         }
     }
 

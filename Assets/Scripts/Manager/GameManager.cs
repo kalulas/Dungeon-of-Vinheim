@@ -45,19 +45,19 @@ public enum GLEventCode {
     ExitBrowseMode,
     DisplayInteractable,
     DisplayFadeText,
+    PlayAnimation,
+    ResetAnimation,
     End,
 }
 
 public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback {
     public static GameManager Instance;
-
-    // the same as original vThirdPersonController.LocalPlayerInstance
     [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
     public static GameObject localPlayer;
+    public TimeConfig timeConfig;
     public string hostInstancePath;
     public string memberInstancePath;
 
-    private readonly float entranceWaitTime = 5.0f;
     private Coroutine entranceCountDownCor = null;
     private Coroutine entranceEnterCor = null;
 
@@ -111,10 +111,12 @@ public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback {
         ActionManager.CreateInstance();
         QueueManager.CreateInstance();
         RoomPropManager.CreateInstance();
+        AnimationManager.CreateInstance();
 
         LoadPositionConfig config = Resources.Load("Configs/RoomPositionConfig") as LoadPositionConfig;
         playerSpawns = new LoadObject[config.loads.Count];
         config.loads.CopyTo(playerSpawns);
+        timeConfig = Resources.Load("Configs/DungeonTimeConfig") as TimeConfig;
 
         if (PhotonNetwork.IsMasterClient) {
             object[] roomtypes = RoomManager.Instance.SetUpRoomMap();
@@ -147,13 +149,13 @@ public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback {
 
     private void OnCountDownStart(object data) {
         Direction dir = (Direction)data;
-        float countDown = entranceWaitTime;
-        entranceCountDownCor = WaitTimeManager.CreateCoroutine(true, entranceWaitTime, delegate () {
+        float countDown = timeConfig.EntranceQueueWait;
+        entranceCountDownCor = WaitTimeManager.CreateCoroutine(true, timeConfig.EntranceQueueWait, delegate () {
             countDown -= 1.0f;
             MessageCenter.Instance.PostGLEvent(GLEventCode.UpdateEntranceCountDown, countDown);
         }, 1.0f, true);
 
-        entranceEnterCor = WaitTimeManager.CreateCoroutine(false, entranceWaitTime, delegate () {
+        entranceEnterCor = WaitTimeManager.CreateCoroutine(false, timeConfig.EntranceQueueWait, delegate () {
             MessageCenter.Instance.PostGLEvent(GLEventCode.StartRoomTransition, data);
         });
     }

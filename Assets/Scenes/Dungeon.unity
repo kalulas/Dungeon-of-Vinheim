@@ -3076,6 +3076,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultDiscription: 1
   Discription: a test box
+  onlyOnce: 0
+  hasAnimation: 0
+  animationPlayed: 
   appendix: cube A
 --- !u!65 &519949575
 BoxCollider:
@@ -3833,6 +3836,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultDiscription: 1
   Discription: a test box
+  onlyOnce: 1
+  hasAnimation: 0
+  animationPlayed: 
   appendix: cube B
 --- !u!65 &817518611
 BoxCollider:
@@ -4896,7 +4902,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hostInstancePath: Prefabs/Players/Dungeon_Host_Player
   memberInstancePath: Prefabs/Players/Knight_Male_Player
-  entranceAvailable: 1
 --- !u!114 &1218549985
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5824,6 +5829,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultDiscription: 1
   Discription: a test box
+  onlyOnce: 1
+  hasAnimation: 0
+  animationPlayed: 
   appendix: cube C
 --- !u!65 &1572084618
 BoxCollider:
@@ -7338,6 +7346,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultDiscription: 1
   Discription: a test box
+  onlyOnce: 1
+  hasAnimation: 0
+  animationPlayed: 
   appendix: cube D
 --- !u!65 &2107192031
 BoxCollider:

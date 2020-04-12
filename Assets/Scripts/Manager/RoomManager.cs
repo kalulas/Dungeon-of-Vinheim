@@ -207,8 +207,10 @@ public class RoomManager : SingletonMonoBehaviour<RoomManager> {
         entranceAvailable = false;
         if (EntrancesDic.ContainsKey(direction)) {
             GameObject entrance = EntrancesDic[direction];
-            entrance.GetComponent<Entrance>().PlayAnimation();
-            WaitTimeManager.CreateCoroutine(false, 1.0f, () => {
+            object[] _data = new object[] { entrance.GetInstanceID(), entrance.GetComponent<Entrance>().animationPlayed };
+            MessageCenter.Instance.PostGLEvent(GLEventCode.PlayAnimation, _data);
+
+            WaitTimeManager.CreateCoroutine(false, GameManager.Instance.timeConfig.EntranceAnimation, () => {
                 MessageCenter.Instance.PostGLEvent(GLEventCode.EndRoomTransition, direction);
             });
         }
@@ -218,8 +220,9 @@ public class RoomManager : SingletonMonoBehaviour<RoomManager> {
         Direction direction = (Direction)data;
         LoadRoomAtDirection(direction);
         if (EntrancesDic.ContainsKey(direction)) {
-            GameObject entrance = EntrancesDic[direction];
-            entrance.GetComponent<Entrance>().ResetAnimation();
+            GameObject ent = EntrancesDic[direction];
+            object[] _data = new object[] { ent.GetInstanceID(), ent.GetComponent<Entrance>().animationPlayed };
+            MessageCenter.Instance.PostGLEvent(GLEventCode.ResetAnimation, _data);
         }
         entranceAvailable = true;
     }

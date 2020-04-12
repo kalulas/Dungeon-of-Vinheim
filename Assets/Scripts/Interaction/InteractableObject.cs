@@ -6,35 +6,43 @@ public abstract class InteractableObject : MonoBehaviour
 {
     public bool defaultDiscription = true;
     public string Discription;
+    public bool onlyOnce = true; // interact only once while player nearby
+    public bool duringAction = false;
 
     public bool hasAnimation = false;
     public string animationPlayed;
-    protected Animation mAnimation;
 
-    private void Start() {
+    protected void Start() {
         if (defaultDiscription) {
             Discription = "PRESS E TO INTERACT WITH " + gameObject.name;
         }
         if(hasAnimation) {
-            mAnimation = gameObject.GetComponent<Animation>();
+            AnimationManager.Instance.RegisterAnimation(gameObject.GetInstanceID(), gameObject.GetComponent<Animation>());
         }
+        Init();
     }
 
-    public void PlayAnimation() {
-        if (hasAnimation) {
-            mAnimation.Play(animationPlayed);
-        }
-    }
+    protected virtual void Init() {
 
-    public void ResetAnimation() {
-        AnimationState state = mAnimation[animationPlayed];
-        state.time = 0;
-        mAnimation.Sample();
-        state.enabled = false;
     }
 
     public virtual void OnAction() {
-        Debug.Log("Player Hit Action Button!");
+        duringAction = true;
+    }
+
+    private void OnDestroy() {
+        if (hasAnimation) {
+            AnimationManager.Instance.RemoveAnimation(gameObject.GetInstanceID());
+        }
+    }
+
+    public void EndAction() {
+        duringAction = false;
+    }
+
+    private void OnDisable() {
+        // avoid user action list occupied with invisible actions
+        ActionManager.Instance.RemoveIObject(this);
     }
 
     private void OnTriggerEnter(Collider other) {

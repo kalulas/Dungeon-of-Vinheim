@@ -12,9 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09df435770bfaf34591c734f375b6024, type: 3}
   m_Name: RoomPositionConfig
   m_EditorClassIdentifier: 
-  random: 0
+  range: 0
   size: 5
-  range: []
+  innerBound:
+    Center: {x: 0, y: 0}
+    Size: {x: 0, y: 0}
+  outerBound:
+    Center: {x: 0, y: 0}
+    Size: {x: 0, y: 0}
   loads:
   - position: {x: 15.4, y: 0.15, z: 0}
     rotation: {x: 0, y: 0, z: 0}
