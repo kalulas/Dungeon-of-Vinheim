@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 using Photon.Pun;
 using Photon.Realtime;
 using ExitGames.Client.Photon;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public static class IListExtensions {
     /// <summary>
@@ -30,14 +31,21 @@ public static class IListExtensions {
 public enum NetEventCode {
     PlaceHolder,
     EnterRoom,
+    UpdateReady,
+    GameStart,
     StartEnterRoomCountDown,
     CancelEnterRoomCountDown,
     MoveRoom,
+    GameClear,
+    EnterReadyStage,
+    GameDurationUpdate,
     End,
 }
 
 public enum GLEventCode {
     Start,
+    UpdateReadyList,
+    GameStartToggleUpdate,
     UpdateEntranceCountDown,
     StartRoomTransition,
     EndRoomTransition,
@@ -45,6 +53,7 @@ public enum GLEventCode {
     ExitBrowseMode,
     DisplayInteractable,
     DisplayFadeText,
+    DisplayFadeTextWithConfig,
     PlayAnimation,
     ResetAnimation,
     End,
@@ -54,45 +63,62 @@ public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback {
     public static GameManager Instance;
     [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
     public static GameObject localPlayer;
+    [HideInInspector]
     public TimeConfig timeConfig;
     public string hostInstancePath;
     public string memberInstancePath;
+    [HideInInspector]
+    public int gameDuration;
 
     private Coroutine entranceCountDownCor = null;
     private Coroutine entranceEnterCor = null;
 
     private LoadObject[] playerSpawns;
+    Coroutine hostGameCountDown;
 
     #region Photon Callbacks
     /// <summary>
     /// Called when the local player left the room. We need to load the launcher scene.
     /// </summary>
+    /// 
+
     public override void OnLeftRoom() {
-        SceneManager.LoadScene(0,LoadSceneMode.Single);
+        StartCoroutine(LoadLauncher());
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer) {
-        Debug.LogFormat("OnPlayerEnteredRoom() {0}", newPlayer.NickName); // not seen if you're the player connecting
-        if (PhotonNetwork.IsMasterClient) {
-            Debug.LogFormat("OnPlayerEnteredRoom(): update {0}'s map", newPlayer); // called before OnPlayerLeftRoom
-        }
+        MessageCenter.Instance.PostGLEvent(GLEventCode.DisplayFadeText, string.Format("Player {0} has entered this dungeon", newPlayer.NickName));
+        // or you can sent GLEvent
+        OnReadyUpdate(null);
     }
 
     public void OnEvent(EventData photonEvent) {
-        Debug.LogFormat("Received photonEvent with EventCode:{0}", photonEvent.Code);
+        //Debug.LogFormat("Received photonEvent with EventCode:{0}", photonEvent.Code);
         if(photonEvent.Code > (byte)NetEventCode.PlaceHolder && photonEvent.Code < (byte)NetEventCode.End) {
             MessageCenter.Instance.NetEventDataQueue.Enqueue(photonEvent);
         }
     }
 
     public override void OnPlayerLeftRoom(Player newPlayer) {
-        Debug.LogFormat("OnPlayerLeftRoom() {0}", newPlayer.NickName); // seen when other disconnects    
-        if (PhotonNetwork.IsMasterClient) {
-            Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", newPlayer.IsMasterClient); // called before OnPlayerLeftRoom
-        }
+        MessageCenter.Instance.PostGLEvent(GLEventCode.DisplayFadeText, string.Format("Player {0} has left this dungeon", newPlayer.NickName));
+        OnReadyUpdate(null);
     }
 
     #endregion
+
+    IEnumerator LoadLauncher() {
+        AsyncOperation async = SceneManager.LoadSceneAsync(0);
+        async.allowSceneActivation = false;
+        float wait = 0f;
+        while (!async.isDone) {
+            if(wait < timeConfig.LoadSceneWait) {
+                wait += Time.deltaTime;
+            } else {
+                async.allowSceneActivation = true;
+            }
+            yield return null;
+        }
+    }
 
     public new void OnEnable() {
         base.OnEnable();
@@ -117,34 +143,147 @@ public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback {
         playerSpawns = new LoadObject[config.loads.Count];
         config.loads.CopyTo(playerSpawns);
         timeConfig = Resources.Load("Configs/DungeonTimeConfig") as TimeConfig;
+        gameDuration = (int)RoomPropManager.Instance.GetProp(RoomPropType.Duration);
 
         if (PhotonNetwork.IsMasterClient) {
-            object[] roomtypes = RoomManager.Instance.SetUpRoomMap();
-            RoomPropManager.Instance.SetProp(RoomPropType.GridMap, roomtypes);
+            RoomManager.Instance.SetUpRoomMap();
         }
+    }
+
+    private void OnDestroy() {
+        MessageCenter.ReleaseInstance();
+        RoomManager.ReleaseInstance();
+        ActionManager.ReleaseInstance();
+        QueueManager.ReleaseInstance();
+        RoomPropManager.ReleaseInstance();
+        AnimationManager.ReleaseInstance();
     }
 
     private void Start() {
         MessageCenter.Instance.AddEventListener(GLEventCode.EndRoomTransition, OnRoomTransitionEnd);
 
+        MessageCenter.Instance.AddObserver(NetEventCode.UpdateReady, OnReadyUpdate);
         MessageCenter.Instance.AddObserver(NetEventCode.StartEnterRoomCountDown, OnCountDownStart);
         MessageCenter.Instance.AddObserver(NetEventCode.CancelEnterRoomCountDown, OnCountDownCancel);
         MessageCenter.Instance.AddObserver(NetEventCode.EnterRoom, OnEnterRoom);
+        MessageCenter.Instance.AddObserver(NetEventCode.GameClear, OnGameClear);
+        MessageCenter.Instance.AddObserver(NetEventCode.GameStart, OnGameStart);
+        MessageCenter.Instance.AddObserver(NetEventCode.EnterReadyStage, BuildDungeonAndLoadPlayer);
 
-        object[] roomTypes = (object[])RoomPropManager.Instance.GetProp(RoomPropType.GridMap);
-        RoomManager.Instance.BuildAndCreateMap(roomTypes);
-        UIManager.instance.BuildMinimap(roomTypes);
+        BuildDungeonAndLoadPlayer(null);
+        OnReadyUpdate(null);
+    }
 
-        // load & justify player position
-        if (localPlayer == null) {
-            Debug.LogFormat("We are Instantiating LocalPlayer from {0}", Application.loadedLevelName);
-            int load = (int)Direction.Center;
-            if (PhotonNetwork.IsMasterClient) {
-                localPlayer = PhotonNetwork.Instantiate(hostInstancePath, playerSpawns[load].position, Quaternion.Euler(playerSpawns[load].rotation), 0);
+    private void OnReadyUpdate(object data) {
+        Player[] players = PhotonNetwork.PlayerList;
+        string[] nicknames = new string[players.Length];
+        bool[] readys = new bool[players.Length];
+        bool allReady = true;
+        for (int i = 0; i < players.Length; i++) {
+            bool ready = false;
+            if (players[i].CustomProperties.ContainsKey(RoomPropManager.PlayerPropKeys[PlayerPropType.Ready])) {
+                ready = (bool)players[i].CustomProperties[RoomPropManager.PlayerPropKeys[PlayerPropType.Ready]];
+            }
+            nicknames[i] = players[i].NickName;
+            readys[i] = ready;
+            allReady &= ready;
+        }
+        if (PhotonNetwork.IsMasterClient) {
+            if (allReady) {
+                // enable start button
+                MessageCenter.Instance.PostGLEvent(GLEventCode.GameStartToggleUpdate, true);
             } else {
-                localPlayer = PhotonNetwork.Instantiate(memberInstancePath, playerSpawns[load].position, Quaternion.Euler(playerSpawns[load].rotation), 0);
+                MessageCenter.Instance.PostGLEvent(GLEventCode.GameStartToggleUpdate, false);
             }
         }
+        object[] _data = new object[2] { nicknames, readys };
+        MessageCenter.Instance.PostGLEvent(GLEventCode.UpdateReadyList, _data);
+    }
+
+    /// <summary>
+    /// 进入准备阶段：城主加载地图生成需要同步的对象
+    /// 其他玩家根据城主设置的房间内容建设房间
+    /// </summary>
+    /// <param name="data"></param>
+    private void BuildDungeonAndLoadPlayer(object data) {
+        object[] roomTypes = (object[])RoomPropManager.Instance.GetProp(RoomPropType.GridMap);
+        RoomManager.Instance.BuildAndCreateMap(roomTypes);
+
+        // load & justify player position for the first time
+        // 根据玩家在游戏内的ID编号决定加载位置
+        int load = 5 * (int)Direction.Center + GetPlayerIndex();
+        if (localPlayer == null) {
+            if (PhotonNetwork.IsMasterClient) {
+                localPlayer = PhotonNetwork.Instantiate(memberInstancePath, playerSpawns[load].position, Quaternion.Euler(playerSpawns[load].rotation));
+            } else {
+                localPlayer = PhotonNetwork.Instantiate(memberInstancePath, playerSpawns[load].position, Quaternion.Euler(playerSpawns[load].rotation));
+            }
+        } 
+        // reposition local player and reset properties
+        localPlayer.transform.position = playerSpawns[load].position;
+        localPlayer.transform.rotation = Quaternion.Euler(playerSpawns[load].rotation);
+        // TODO: 重置玩家属性，禁止输入等待等等
+        localPlayer.GetComponent<vThirdPersonController>().ResetHealth();
+        MessageCenter.Instance.PostGLEvent(GLEventCode.EnterBrowseMode);
+    }
+
+    /// <summary>
+    /// 城主通知游戏开始
+    /// </summary>
+    /// <param name="data"></param>
+    private void OnGameStart(object data) {
+        Debug.Log("[GameManager] GAME START!");
+        if (PhotonNetwork.IsMasterClient) {
+            RoomManager.Instance.GenerateAllSceneObjects();
+            // 进行游戏倒计时，若倒计时结束仍未击杀boss则城主胜利
+            int remain = gameDuration;
+            hostGameCountDown = WaitTimeManager.CreateCoroutine(true, gameDuration, delegate () {
+                remain--;
+                MessageCenter.Instance.PostNetEvent2All(NetEventCode.GameDurationUpdate, remain);
+                if (remain == 0) {
+                    // 城主胜利
+                    MessageCenter.Instance.PostNetEvent2All(NetEventCode.GameClear, true);
+                }
+            }, 1.0f, true);
+        }
+        //RoomManager.Instance.GetAllRoomsReady();
+        MessageCenter.Instance.PostGLEvent(GLEventCode.ExitBrowseMode);
+    }
+
+    /// <summary>
+    /// 一局游戏结束
+    /// 城主提前生成好下一局地图，加载完毕后通知其他主机进入准备阶段
+    /// </summary>
+    /// <param name="data">城主胜利为true，侵入者胜利为false</param>
+    private void OnGameClear(object data) {
+        if (PhotonNetwork.IsMasterClient) {
+            // 结束城主倒计时
+            if(hostGameCountDown != null) {
+                WaitTimeManager.CancelCoroutine(ref hostGameCountDown);
+            }
+            RoomManager.Instance.SetUpRoomMap();
+            WaitTimeManager.CreateCoroutine(false, timeConfig.GameInternal, delegate () {
+
+                // 取消所有准备，置开始为false，再通知其他主机
+                Player[] players = PhotonNetwork.PlayerList;
+                Hashtable hashtable = new Hashtable() { { RoomPropManager.PlayerPropKeys[PlayerPropType.Ready], false } };
+                foreach (Player player in players) {
+                    player.SetCustomProperties(hashtable);
+                }
+                RoomPropManager.Instance.SetProp(RoomPropType.GameStart, false);
+                MessageCenter.Instance.PostNetEvent2All(NetEventCode.EnterReadyStage);
+            });
+        }
+        string gameClearMessage;
+        if(!(PhotonNetwork.IsMasterClient ^ (bool)data)) {
+            gameClearMessage = "You win! Congratulations!";
+        } else {
+            gameClearMessage = "Sorry, maybe next time.";
+        }
+        float displayTime = timeConfig.GameInternal;
+        float fadeTime = 0.5f;
+        object[] config = new object[]{ gameClearMessage, displayTime, fadeTime };
+        MessageCenter.Instance.PostGLEvent(GLEventCode.DisplayFadeTextWithConfig, config);
     }
 
     private void OnCountDownStart(object data) {
@@ -173,9 +312,23 @@ public class GameManager : MonoBehaviourPunCallbacks, IOnEventCallback {
         MessageCenter.Instance.PostGLEvent(GLEventCode.StartRoomTransition, data);
     }
 
+    // adjust the loading position of the player
+    private int GetPlayerIndex() {
+        Player[] players = PhotonNetwork.PlayerList;
+        int total = players.Length;
+        int idx = 0;
+        for (int i = 0; i < total; i++) {
+            if(players[i].ActorNumber < PhotonNetwork.LocalPlayer.ActorNumber) {
+                idx++;
+            }
+        }
+        return idx;
+    }
+
     private void OnRoomTransitionEnd(object data) {
         Direction direction = (Direction)data;
-        localPlayer.transform.position = playerSpawns[3 - (int)direction].position;
-        localPlayer.transform.rotation = Quaternion.Euler(playerSpawns[3 - (int)direction].rotation);
+        // 5 positions each direction ->  5 * direction + playerIndex
+        localPlayer.transform.position = playerSpawns[5 * (3 - (int)direction) + GetPlayerIndex()].position;
+        localPlayer.transform.rotation = Quaternion.Euler(playerSpawns[5 * (3 - (int)direction) + GetPlayerIndex()].rotation);
     }
 }

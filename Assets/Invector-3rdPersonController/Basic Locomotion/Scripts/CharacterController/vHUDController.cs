@@ -62,9 +62,12 @@ namespace Invector.vCharacterController
         void Start()
         {
             InitFadeText();
-            if (debugPanel != null)
+            if (debugPanel != null) {
                 debugText = debugPanel.GetComponentInChildren<Text>();
+            }
+
             MessageCenter.Instance.AddEventListener(GLEventCode.DisplayFadeText, OnFadeTextDisplay);
+            MessageCenter.Instance.AddEventListener(GLEventCode.DisplayFadeTextWithConfig, OnFadeTextDisplayWithConfig);
         }
 
         public void Init(vThirdPersonController cc)
@@ -144,6 +147,11 @@ namespace Invector.vCharacterController
 
         private void OnFadeTextDisplay(object data) {
             ShowText((string)data);
+        }
+
+        private void OnFadeTextDisplayWithConfig(object data) {
+            object[] config = (object[])data;
+            ShowText((string)config[0], (float)config[1], (float)config[2]);
         }
 
         void UpdateSliders(vThirdPersonController cc)

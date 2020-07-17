@@ -12,7 +12,9 @@ GameObject:
   - component: {fileID: 3335786}
   - component: {fileID: 2393096}
   - component: {fileID: -2653486262773871680}
-  m_Layer: 12
+  - component: {fileID: 7125154413382848552}
+  - component: {fileID: 4759631888534408955}
+  m_Layer: 0
   m_Name: RockPile_Pillar_03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -93,3 +95,37 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 14
   m_Mesh: {fileID: 4300000, guid: 09bcfec133202d347a9100aa8c7bdfee, type: 3}
+--- !u!114 &7125154413382848552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 0
+  OwnershipTransfer: 0
+  ObservedComponents:
+  - {fileID: 0}
+  viewIdField: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &4759631888534408955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d27d05b6dc7cdb240917e559f7280747, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -25,12 +25,11 @@ public class Room : ScriptableObject {
     private int roomNumber;
     public RoomType roomType { get; private set; }
 
-    public bool setup { get; private set; } = false;
     // private RoomType roomType;
     [SerializeField]
     private GameObject roomExtra;
     [SerializeField]
-    private GameObject roomExtraObjectsContainer;
+    private GameObject roomObjectsContainer, enemiesContainer, obstaclesContainer, itemsContainer;
     [SerializeField]
     // the upper limit of the number of enemies
     private const int enemyCountLimit = 9;
@@ -54,118 +53,158 @@ public class Room : ScriptableObject {
         return new Vector3(x, 0f, z);
     }
 
+    private void GenerateBossRoomSceneObjects() {
+        LoadObject[] enemiesSpawns = RoomManager.Instance.BossRoomSpawns;
+        object[] data = { InstantiateType.NewEnemy, roomNumber };
+        int bossCount = RoomManager.Instance.DungeonEnemiesConfig.bossPathList.Count;
+        if (bossCount == 0) {
+            Debug.LogError("Boss configs not found in DungeonEnemiesConfig.bossPathList");
+        }
+        string chosenBoss = RoomManager.Instance.DungeonEnemiesConfig.bossPathList[Random.Range(0, bossCount - 1)];
+        GameObject boss = PhotonNetwork.InstantiateSceneObject(chosenBoss, enemiesSpawns[0].position, Quaternion.Euler(enemiesSpawns[0].rotation), 0, data);
+        // Master Client Death Event Monitor
+        boss.GetComponent<v_AIController>()?.onDead.AddListener(RoomManager.Instance.OnMasterBossDeath);
+    }
+
+    private void GenerateBattleRoomSceneObjects() {
+        LoadObject[] enemiesSpawns = RoomManager.Instance.EnemiesSpawns;
+        Range2DRect InnerBound = RoomManager.Instance.ObstaclesInnerBound;
+        Range2DRect OuterBound = RoomManager.Instance.ObstaclesOuterBound;
+
+        GameObject[] obstacles = Resources.LoadAll<GameObject>("Prefabs/Environments/Rocks");
+        obstacles.Shuffle(0, obstacles.Length);
+
+        int enemyCount = Random.Range(1, enemyCountLimit);
+        int obstacleCount = Random.Range(obstacles.Length / 2, obstacles.Length);
+
+        for (int i = 0; i < enemyCount; i++) {
+            object[] data = { InstantiateType.NewEnemy, roomNumber };
+
+            int enemyType = RoomManager.Instance.DungeonEnemiesConfig.normalPathList.Count;
+            if (enemyType == 0) {
+                Debug.LogError("Can't find any enemies prefab in DungeonEnemiesConfig.normalPathList");
+            }
+
+            // enemies are randomly generated.
+            string chosenEnemy = RoomManager.Instance.DungeonEnemiesConfig.normalPathList[Random.Range(0, enemyType - 1)];
+            GameObject enemy = PhotonNetwork.InstantiateSceneObject(chosenEnemy, enemiesSpawns[i].position, Quaternion.Euler(enemiesSpawns[i].rotation), 0, data);
+            // enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
+        }
+
+        for(int i = 0; i < obstacleCount; i++) {
+            object[] data = { InstantiateType.NewObstacle, roomNumber };
+            string chosenObstacle = "Prefabs/Environments/Rocks/" + obstacles[i].name;
+            Vector3 gPosition = GetRandomPositionInRange(InnerBound.GetBorder(), OuterBound.GetBorder());
+            GameObject obstacle = PhotonNetwork.InstantiateSceneObject(chosenObstacle, gPosition, Quaternion.identity, 0, data);
+        }
+
+    }
+
+    public void GenerateSceneObjects() {
+        switch (roomType) {
+            case RoomType.EmptyRoom:
+                break;
+            case RoomType.StartingRoom:
+                break;
+            case RoomType.BattleRoom:
+                GenerateBattleRoomSceneObjects();
+                break;
+            case RoomType.RewardRoom:
+                break;
+            case RoomType.BossRoom:
+                GenerateBossRoomSceneObjects();
+                break;
+            default:
+                break;
+        }
+    }
+
     public Room SetUp(int number, RoomType type, GameObject extra = null) {
         roomType = type;
         roomExtra = extra;
         roomNumber = number;
-        roomExtraObjectsContainer = new GameObject("room" + roomNumber + roomType);
-        roomExtraObjectsContainer.transform.SetParent(roomsContainer.transform);
-        if (PhotonNetwork.IsMasterClient) {
-            // TODO: create enemies & items here
-            switch (type) {
-                case RoomType.BattleRoom: SetUpBattleRoom(); break;
-                default: break;
-            }
-            setup = true;
-        }
-        itemList = null;
+        // 准备好场景对象的容器
+        roomObjectsContainer = new GameObject("room" + roomNumber + roomType);
+        roomObjectsContainer.transform.SetParent(roomsContainer.transform);
+        //GetReady();
+        enemiesContainer = new GameObject("enemies");
+        enemiesContainer.transform.SetParent(roomObjectsContainer.transform);
+        obstaclesContainer = new GameObject("obstacles");
+        obstaclesContainer.transform.SetParent(roomObjectsContainer.transform);
         return this;
     }
 
-    public void GetReady() {
-        switch (roomType) {
-            case RoomType.BattleRoom: SetUpBattleRoom(); break;
-            default: break;
-        }
-        setup = true;
-    }
-
-    private void SetUpBattleRoom() {
-        LoadObject[] enemiesSpawns = RoomManager.Instance.EnemiesSpawns;
-        Range2DRect InnerBound = RoomManager.Instance.ObstaclesInnerBound;
-        Range2DRect OuterBound = RoomManager.Instance.ObstaclesOuterBound;
-        //vWaypointArea pathArea = GameManager.instance.WaypointArea.GetComponent<vWaypointArea>();
-
-        GameObject enemiesContainer = new GameObject("enemies");
-        enemiesContainer.transform.SetParent(roomExtraObjectsContainer.transform);
-        GameObject obstaclesContainer = new GameObject("obstacles");
-        obstaclesContainer.transform.SetParent(roomExtraObjectsContainer.transform);
-
+    public void CleanUp() {
+        // GameObjects associated with photonViews are destroyed by MasterClient
         if (PhotonNetwork.IsMasterClient) {
-            GameObject[] obstacles = Resources.LoadAll<GameObject>("Prefabs/Environments/Rocks");
-            obstacles.Shuffle(0, obstacles.Length);
-            int enemyCount = Random.Range(1, enemyCountLimit);
-            int obstacleCount = Random.Range(obstacles.Length / 2, obstacles.Length);
-            object[] enemyViewIds = new object[enemyCount];
-            string[] obstaclePaths = new string[obstacleCount];
-            Vector3[] obstaclePositions = new Vector3[obstacleCount];
-
-            for (int i = 0; i < enemyCount; i++) {
-                GameObject enemy = PhotonNetwork.InstantiateSceneObject("Prefabs/Enemies/Skeleton_Slave_01", enemiesSpawns[i].position, Quaternion.Euler(enemiesSpawns[i].rotation), 0, null);
-                // enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
-                enemy.SetActive(false);
-                enemyList.Add(enemy);
-                enemy.transform.SetParent(enemiesContainer.transform);
-                enemyViewIds[i] = enemy.GetComponent<PhotonView>().ViewID;
-            }
-
-            for (int i = 0; i < obstacleCount; i++) {
-                GameObject obstacle = GameObject.Instantiate<GameObject>(obstacles[i]);
-                obstacle.transform.position = GetRandomPositionInRange(InnerBound.GetBorder(), OuterBound.GetBorder());
-                obstaclePaths[i] = "Prefabs/Environments/Rocks/" + obstacles[i].name;
-                obstaclePositions[i] = obstacle.transform.position;
-                obstacle.SetActive(false);
-                obstacleList.Add(obstacle);
-                obstacle.transform.SetParent(obstaclesContainer.transform);
-            }
-
-            RoomPropManager.Instance.SetProp(RoomPropType.EnemyList, roomNumber, enemyViewIds);
-            RoomPropManager.Instance.SetProp(RoomPropType.ObstaclePath, roomNumber, obstaclePaths);
-            RoomPropManager.Instance.SetProp(RoomPropType.ObstaclePosition, roomNumber, obstaclePositions);
-
-        } else {
-            object[] enemyViewIds = (object[])RoomPropManager.Instance.GetProp(RoomPropType.EnemyList, roomNumber);
-            string[] obstaclePaths = (string[])RoomPropManager.Instance.GetProp(RoomPropType.ObstaclePath, roomNumber);
-            Vector3[] obstaclePos = (Vector3[])RoomPropManager.Instance.GetProp(RoomPropType.ObstaclePosition, roomNumber);
-            if (enemyViewIds != null) {
-                foreach (int viewID in enemyViewIds) {
-                    if (viewID == -1) break;
-                    if (PhotonNetwork.GetPhotonView(viewID)) {
-                        GameObject enemy = PhotonNetwork.GetPhotonView(viewID).gameObject;
-                        enemyList.Add(enemy);
-                        // enemy.GetComponent<v_AIMotor>().pathArea = pathArea;
-                        enemy.SetActive(false);
-                        enemyList.Add(enemy);
-                        enemy.GetComponent<Transform>().SetParent(enemiesContainer.GetComponent<Transform>());
-                    }
+            foreach (GameObject enemy in enemyList) {
+                if (enemy != null) {
+                    PhotonNetwork.Destroy(enemy);
                 }
             }
-
-            if (obstaclePaths != null) {
-                for (int i = 0; i < obstaclePaths.Length; i++) {
-                    GameObject prefab = Resources.Load(obstaclePaths[i]) as GameObject;
-                    GameObject obstacle = GameObject.Instantiate(prefab, obstaclePos[i], Quaternion.identity);
-                    obstacle.SetActive(false);
-                    obstacleList.Add(obstacle);
-                    obstacle.transform.SetParent(obstaclesContainer.transform);
+            foreach (GameObject obstacle in obstacleList) {
+                if (obstacle != null) {
+                    PhotonNetwork.Destroy(obstacle);
                 }
             }
         }
+
+        foreach (GameObject item in itemList) {
+            if (item != null) {
+                Destroy(item);
+            }
+        }
+        enemyList.Clear();
+        obstacleList.Clear();
+        itemList.Clear();
+
+        // 会连带删掉场景同步对象，所以先保留旧容器
+        //if(roomObjectsContainer != null) {
+        //    Destroy(roomObjectsContainer);
+        //}
     }
 
-    public bool Empty() {
+    public void AddEnemy(GameObject enemy) {
+        if(enemiesContainer != null) {
+            enemy.transform.SetParent(enemiesContainer.transform);
+            enemyList.Add(enemy);
+            if(roomNumber == RoomManager.Instance.GetPlayerLocation()) {
+                enemy.SetActive(true);
+            }
+        } else {
+            Debug.LogErrorFormat("enemiesContainer of room{0} not set up!", roomNumber);
+        }
+    }
+
+    public void AddObstacle(GameObject obstacle) {
+        if (obstaclesContainer != null) {
+            obstacle.transform.SetParent(obstaclesContainer.transform);
+            obstacleList.Add(obstacle);
+            if (roomNumber == RoomManager.Instance.GetPlayerLocation()) {
+                obstacle.SetActive(true);
+            }
+        } else {
+            Debug.LogErrorFormat("obstaclesContainer of room{0} not set up!", roomNumber);
+        }
+    }
+
+    public bool IsEmptyRoom() {
         return roomType == RoomType.EmptyRoom;
     }
 
     public void SetRoomObjectsActive(bool value) {
         if (enemyList != null) {
-            foreach (var enemy in enemyList) {
-                enemy.SetActive(value);
+            foreach (GameObject enemy in enemyList) {
+                if(enemy != null) {
+                    enemy.SetActive(value);
+                }
             }
         }
         if (itemList != null) {
-            foreach (var item in itemList) {
-                item.SetActive(value);
+            foreach (GameObject item in itemList) {
+                if(item!= null) {
+                    item.SetActive(value);
+                }
             }
         }
     }

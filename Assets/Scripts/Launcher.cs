@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using ExitGames.Client.Photon;
 
 public class Launcher : MonoBehaviourPunCallbacks {
     public string gameVersion { get; set; } = "0.1";
-    public byte mapSize { get; set; } = 5;
+    public int mapSize = 5;
     [Tooltip("The maximum number of players per room. When a room is full, it can't be joined by new players, and so new room will be created")]
     [SerializeField]
-    private byte maxPlayersPerRoom = 4;
+    private readonly byte maxPlayersPerRoom = 5;
 
     private bool isConnecting = false;
     [Tooltip("The Ui Panel to let the user enter name, connect and play")]
@@ -35,6 +36,7 @@ public class Launcher : MonoBehaviourPunCallbacks {
     void Start() {
         progressLabel.SetActive(false);
         controlPanel.SetActive(true);
+        AClockworkBerry.ScreenLogger.CreateInstance();
         // Connect();
     }
 
@@ -42,7 +44,11 @@ public class Launcher : MonoBehaviourPunCallbacks {
         Debug.Log("Connected to Master!");
         if (isConnecting) {
             // #Critical: The first we try to do is to join a potential existing room. If there is, good, else, we'll be called back with OnJoinRandomFailed()
-            PhotonNetwork.JoinRandomRoom();
+            Hashtable filter = new Hashtable() {
+                {RoomPropManager.PropKeys[RoomPropType.GameStart], false },
+            };
+            PhotonNetwork.JoinRandomRoom(filter, maxPlayersPerRoom);
+            //PhotonNetwork.JoinRandomRoom();
             isConnecting = false;
         }
     }
@@ -54,8 +60,20 @@ public class Launcher : MonoBehaviourPunCallbacks {
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message) {
-        Debug.Log("No random room available,so we create one.\nCalling: PhotonNetwork.CreateRoom");
-        PhotonNetwork.CreateRoom(null, new RoomOptions { MaxPlayers = maxPlayersPerRoom });
+        Debug.Log("No random room available, create a new room");
+        RoomOptions roomOptions = new RoomOptions();
+        roomOptions.MaxPlayers = maxPlayersPerRoom;
+        roomOptions.CustomRoomProperties = new Hashtable() {
+            {RoomPropManager.PropKeys[RoomPropType.GameStart], false },
+            {RoomPropManager.PropKeys[RoomPropType.MapSize], mapSize },
+            {RoomPropManager.PropKeys[RoomPropType.Duration], 300 },
+            {RoomPropManager.PropKeys[RoomPropType.WaitDown], 0 },
+            {RoomPropManager.PropKeys[RoomPropType.WaitUp], 0 },
+            {RoomPropManager.PropKeys[RoomPropType.WaitLeft], 0 },
+            {RoomPropManager.PropKeys[RoomPropType.WaitRight], 0 },
+        };
+        roomOptions.CustomRoomPropertiesForLobby = new string[] { RoomPropManager.PropKeys[RoomPropType.GameStart] };
+        PhotonNetwork.CreateRoom(null, roomOptions);
     }
 
     public override void OnJoinedRoom() {
@@ -72,11 +90,11 @@ public class Launcher : MonoBehaviourPunCallbacks {
         controlPanel.SetActive(false);
         // we check if we are connected or not, we join if we are , else we initiate the connection to the server.
         if (PhotonNetwork.IsConnected) {
-            Debug.Log("IsConnected,join random");
+            Debug.Log("Connected,join random");
             // #Critical we need at this point to attempt joining a Random Room. If it fails, we'll get notified in OnJoinRandomFailed() and we'll create one.
             PhotonNetwork.JoinRandomRoom();
         } else {
-            Debug.Log("IsNotConnected,join connet using settings");
+            Debug.Log("Not Connected, connect to Photon Online Server");
             // #Critical, we must first and foremost connect to Photon Online Server.
             // isConnecting = PhotonNetwork.ConnectUsingSettings();
             isConnecting = ConnectToChina();

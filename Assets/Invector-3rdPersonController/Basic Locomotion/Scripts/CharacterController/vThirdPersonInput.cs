@@ -94,8 +94,22 @@ namespace Invector.vCharacterController
                 StartCoroutine(CharacterInit());
             }
 
-            ShowCursor(showCursorOnStart);
-            LockCursor(unlockCursorOnStart);
+            //ShowCursor(showCursorOnStart);
+            //LockCursor(unlockCursorOnStart);
+            OnBrowseModeEnter(null);
+
+        }
+
+        private void OnDestroy() {
+            if (MessageCenter.IsCreate) {
+                MessageCenter.Instance.RemoveObserver(NetEventCode.StartEnterRoomCountDown, LockAllInputOnEvent);
+                MessageCenter.Instance.RemoveObserver(NetEventCode.CancelEnterRoomCountDown, UnlockAllInputOnEvent);
+
+                MessageCenter.Instance.RemoveEventListener(GLEventCode.StartRoomTransition, LockAllInputOnEvent);
+                MessageCenter.Instance.RemoveEventListener(GLEventCode.EndRoomTransition, UnlockAllInputOnEvent);
+                MessageCenter.Instance.RemoveEventListener(GLEventCode.EnterBrowseMode, OnBrowseModeEnter);
+                MessageCenter.Instance.RemoveEventListener(GLEventCode.ExitBrowseMode, OnBrowseModeExit);
+            }
         }
 
         protected virtual IEnumerator CharacterInit()
@@ -104,7 +118,14 @@ namespace Invector.vCharacterController
             if (tpCamera == null)
             {
                 tpCamera = FindObjectOfType<vCamera.vThirdPersonCamera>();
-                if (tpCamera && tpCamera.target != transform && photonView.IsMine) tpCamera.SetMainTarget(this.transform);
+                //if (tpCamera && tpCamera.target != transform && photonView.IsMine) tpCamera.SetMainTarget(transform);
+                if (photonView.IsMine) {
+                    if (tpCamera == null) {
+                        GameObject cameraGO = Instantiate(Resources.Load("Prefabs/Players/vThirdPersonCamera")) as GameObject;
+                        tpCamera = cameraGO.GetComponent<vCamera.vThirdPersonCamera>();
+                    }
+                    tpCamera.SetMainTarget(transform);
+                }
             }
             if (hud == null && vHUDController.instance != null)
             {
@@ -166,8 +187,9 @@ namespace Invector.vCharacterController
             SetLockAllInput(false);
         }
 
-        private void OnBrowseModeEnter(object data) {
-            if(gameObject == GameManager.localPlayer) {
+        public void OnBrowseModeEnter(object data) {
+            if(photonView.IsMine) {
+                Debug.Log("[vThirdPersonInput] EnterBrowseMode");
                 LockCursor(true);
                 ShowCursor(true);
                 SetLockAllInput(true);
@@ -175,8 +197,10 @@ namespace Invector.vCharacterController
             }
         }
 
-        private void OnBrowseModeExit(object data) {
-            if (gameObject == GameManager.localPlayer) {
+        public void OnBrowseModeExit(object data) {
+            // 只有游戏开始后可以解锁
+            if (photonView.IsMine && (bool)RoomPropManager.Instance.GetProp(RoomPropType.GameStart)) {
+                Debug.Log("[vThirdPersonInput] ExitBrowseMode");
                 LockCursor(false);
                 ShowCursor(false);
                 SetLockAllInput(false);
@@ -353,9 +377,9 @@ namespace Invector.vCharacterController
         {
             if (!cameraMain)
             {
-                if (!Camera.main) Debug.Log("Missing a Camera with the tag MainCamera, please add one.");
-                else
-                {
+                if (!Camera.main) {
+                    Debug.Log("Missing a Camera with the tag MainCamera, but it's OK I think.");
+                } else {
                     cameraMain = Camera.main;
                     cc.rotateTarget = cameraMain.transform;
                 }

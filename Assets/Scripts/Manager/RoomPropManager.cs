@@ -2,42 +2,42 @@
 using UnityEngine;
 
 using Photon.Pun;
-using Photon.Realtime;
 using ExitGames.Client.Photon;
 
 public enum RoomPropType {
+    MapSize,
+    Duration,
     GridMap,
-    EnemyList,
-    ObstaclePath,
-    ObstaclePosition,
+    GameStart,
     WaitDown,
     WaitLeft,
     WaitRight,
     WaitUp,
 }
 
+public enum PlayerPropType {
+    Ready,
+}
+
 public class RoomPropManager : SingletonMonoBehaviour<RoomPropManager> {
     private Hashtable roomProperties;
-    private Dictionary<RoomPropType, string> PropKeys = new Dictionary<RoomPropType, string>() {
+    public static Dictionary<RoomPropType, string> PropKeys = new Dictionary<RoomPropType, string>() {
+        {RoomPropType.MapSize, "ms" },
+        {RoomPropType.Duration, "dr" },
         {RoomPropType.GridMap, "gm" },
-        {RoomPropType.EnemyList, "el" },
-        {RoomPropType.ObstaclePath, "op" },
-        {RoomPropType.ObstaclePosition, "op_" },
+        {RoomPropType.GameStart, "gs" },
         {RoomPropType.WaitDown, "wd" },
         {RoomPropType.WaitLeft, "wl" },
         {RoomPropType.WaitRight, "wr" },
         {RoomPropType.WaitUp, "wu" },
     };
 
+    public static Dictionary<PlayerPropType, string> PlayerPropKeys = new Dictionary<PlayerPropType, string>() {
+        {PlayerPropType.Ready, "re" },
+    };
+
     protected override void Init() {
-        base.Init();
-        roomProperties = new Hashtable() {
-            {PropKeys[RoomPropType.WaitDown], 0 },
-            {PropKeys[RoomPropType.WaitUp], 0 },
-            {PropKeys[RoomPropType.WaitLeft], 0 },
-            {PropKeys[RoomPropType.WaitRight], 0 },
-        };
-        UpLoad();
+        roomProperties = new Hashtable();
     }
 
     private void Download() {

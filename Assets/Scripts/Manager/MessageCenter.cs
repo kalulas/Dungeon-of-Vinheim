@@ -22,9 +22,22 @@ public class MessageCenter : SingletonMonoBehaviour<MessageCenter> {
     private Dictionary<GLEventCode, GLEventCallback> GLEventList = new Dictionary<GLEventCode, GLEventCallback>();
     public Queue<GLEventData> GLEventDataQueue = new Queue<GLEventData>();
 
-    public void PostNetEvent(NetEventCode eventCode, object content, RaiseEventOptions raiseEventOptions) {
+    public void PostNetEvent2All(NetEventCode eventCode, object content = null) {
+        RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
         SendOptions sendOptions = new SendOptions { Reliability = true };
         PhotonNetwork.RaiseEvent((byte)eventCode, content, raiseEventOptions, sendOptions);
+    }
+
+    public void PostNetEvent2Others(NetEventCode eventCode, object content = null) {
+        RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.Others };
+        SendOptions sendOptions = new SendOptions { Reliability = true };
+        PhotonNetwork.RaiseEvent((byte)eventCode, content, raiseEventOptions, sendOptions);
+    }
+
+    public void PostGLEvent(GLEventCode code, object data = null) {
+        if (GLEventList.ContainsKey(code)) {
+            GLEventList[code](data);
+        }
     }
 
     public void AddObserver(NetEventCode code, NetEventCallback callback) {
@@ -58,12 +71,6 @@ public class MessageCenter : SingletonMonoBehaviour<MessageCenter> {
             if(GLEventList[code] == null) {
                 GLEventList.Remove(code);
             }
-        }
-    }
-
-    public void PostGLEvent(GLEventCode code, object data = null) {
-        if (GLEventList.ContainsKey(code)) {
-            GLEventList[code](data);
         }
     }
 

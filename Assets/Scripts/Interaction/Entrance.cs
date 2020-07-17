@@ -31,6 +31,7 @@ public class Entrance : InteractableObject
         } else {
             MessageCenter.Instance.PostGLEvent(GLEventCode.DisplayFadeText, "BLOCKED: CLOSED BY HOST");
         }
+        EndAction();
     }
 
     private void OnEndAction(object data) {

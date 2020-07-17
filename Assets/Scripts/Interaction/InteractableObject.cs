@@ -32,7 +32,9 @@ public abstract class InteractableObject : MonoBehaviour
 
     private void OnDestroy() {
         if (hasAnimation) {
-            AnimationManager.Instance.RemoveAnimation(gameObject.GetInstanceID());
+            if(AnimationManager.IsCreate) {
+                AnimationManager.Instance.RemoveAnimation(gameObject.GetInstanceID());
+            }
         }
     }
 
@@ -42,7 +44,9 @@ public abstract class InteractableObject : MonoBehaviour
 
     private void OnDisable() {
         // avoid user action list occupied with invisible actions
-        ActionManager.Instance.RemoveIObject(this);
+        if (ActionManager.IsCreate) {
+            ActionManager.Instance.RemoveIObject(this);
+        }
     }
 
     private void OnTriggerEnter(Collider other) {

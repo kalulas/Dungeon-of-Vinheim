@@ -261,9 +261,9 @@ MonoBehaviour:
   staminaRecoveryDelay: 0
   defenseRate: 100
   defenseRange: 90
-  defenseID: 3
+  defenseID: 2
   recoilID: 0
-  breakAttack: 0
+  breakAttack: 1
   onDefense:
     m_PersistentCalls:
       m_Calls: []

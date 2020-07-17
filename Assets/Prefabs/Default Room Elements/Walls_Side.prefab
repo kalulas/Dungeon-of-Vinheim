@@ -483,6 +483,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultDiscription: 1
   Discription: 
+  onlyOnce: 0
+  duringAction: 0
   hasAnimation: 1
   animationPlayed: DoorOpen
   direction: 0

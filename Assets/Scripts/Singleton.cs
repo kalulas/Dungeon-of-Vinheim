@@ -33,7 +33,7 @@ public class Singleton<T> where T : new() {
 
 public abstract class SingletonMonoBehaviour<T> : MonoBehaviour where T : SingletonMonoBehaviour<T> {
     protected static T sInstance = null;
-    protected static bool IsCreate = false;
+    public static bool IsCreate = false;
     public static bool s_debugDestroy = false;
     public static T Instance {
         get {

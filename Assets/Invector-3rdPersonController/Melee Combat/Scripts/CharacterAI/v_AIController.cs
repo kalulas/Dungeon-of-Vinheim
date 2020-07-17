@@ -32,6 +32,7 @@ namespace Invector.vCharacterController.AI
             if(stream.IsWriting){
                 stream.SendNext(currentHealth);
                 stream.SendNext(currentState);
+                //stream.SendNext(currentTarget);
                 stream.SendNext(isAttacking);
                 stream.SendNext(isBlocking);
                 stream.SendNext(isCrouching);
@@ -41,6 +42,7 @@ namespace Invector.vCharacterController.AI
             else{
                 currentHealth = (float)stream.ReceiveNext();
                 currentState = (AIStates)stream.ReceiveNext();
+                //currentTarget = (CharacterTarget)stream.ReceiveNext();
                 isAttacking = (bool)stream.ReceiveNext();
                 isBlocking = (bool)stream.ReceiveNext();
                 isCrouching = (bool)stream.ReceiveNext();

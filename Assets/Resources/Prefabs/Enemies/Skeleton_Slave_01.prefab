@@ -221,6 +221,7 @@ Transform:
   - {fileID: 7778452108074037639}
   - {fileID: 7778452106767808458}
   - {fileID: 7778452106470037135}
+  - {fileID: 4907440175009110492}
   m_Father: {fileID: 7778452106312134292}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2869,8 +2870,8 @@ GameObject:
   - component: {fileID: 7778452108054408157}
   - component: {fileID: 7778452108054408156}
   - component: {fileID: 7778452108054408159}
+  - component: {fileID: -3909951249301131402}
   - component: {fileID: 6135925447797598173}
-  - component: {fileID: 7806171529783663365}
   - component: {fileID: -7042313208475796678}
   - component: {fileID: -7830700140197423510}
   m_Layer: 9
@@ -2930,7 +2931,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   openCloseEvents: 0
   openCloseWindow: 1
-  selectedToolbar: 5
+  selectedToolbar: 8
   _isDead: 0
   _currentHealth: 0
   isImmortal: 0
@@ -2997,10 +2998,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   sortTargetFromDistance: 1
-  fieldOfView: 95
-  maxDetectDistance: 5
+  fieldOfView: 360
+  maxDetectDistance: 15
   minDetectDistance: 2
-  distanceToLostTarget: 5
+  distanceToLostTarget: 2
   chaseStopDistance: 1
   drawAgentPath: 1
   displayGizmos: 1
@@ -3013,7 +3014,7 @@ MonoBehaviour:
   maxAttackCount: 3
   randomAttackCount: 1
   chanceToRoll: 0.1
-  chanceToBlockInStrafe: 0.1
+  chanceToBlockInStrafe: 0
   chanceToBlockAttack: 0
   raiseShield: 4
   lowerShield: 2
@@ -3163,6 +3164,18 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &-3909951249301131402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7778452108054408153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d27d05b6dc7cdb240917e559f7280747, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &6135925447797598173
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3187,18 +3200,6 @@ MonoBehaviour:
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &7806171529783663365
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7778452108054408153}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d27d05b6dc7cdb240917e559f7280747, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &-7042313208475796678
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3239,91 +3240,91 @@ MonoBehaviour:
     SynchronizeType: 0
     Name: InputMagnitude
   - Type: 1
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: TurnOnSpotDirection
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: ActionState
   - Type: 4
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: isDead
   - Type: 4
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: IsGrounded
   - Type: 4
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: IsCrouching
   - Type: 4
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: IsStrafing
   - Type: 4
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: IsSprinting
   - Type: 4
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: IsSliding
   - Type: 4
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: FlipAnimation
   - Type: 4
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: FlipEquip
   - Type: 1
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: GroundDistance
   - Type: 1
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: GroundAngle
   - Type: 1
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: VerticalVelocity
   - Type: 1
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: MoveSet_ID
   - Type: 1
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: UpperBody_ID
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: IdleRandom
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: IdleRandomTrigger
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: RandomAttack
   - Type: 9
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: WeakAttack
   - Type: 9
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: StrongAttack
   - Type: 4
-    SynchronizeType: 2
+    SynchronizeType: 1
     Name: IsBlocking
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: AttackID
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: DefenseID
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: RecoilID
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: ReactionID
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: TriggerRecoil
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: TriggerReaction
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: HitDirection
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: ResetState
   m_SynchronizeLayers:
   - SynchronizeType: 1
@@ -3573,3 +3574,93 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &8218033881960420220
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 7778452106275542166}
+    m_Modifications:
+    - target: {fileID: 3600989956596570011, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_Name
+      value: SM_Wep_BrokenSword_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 13.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 100
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 8f61f683277832549bcfbfbff55c8c42, type: 3}
+--- !u!4 &4907440175009110492 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3897558236693662368, guid: 8f61f683277832549bcfbfbff55c8c42,
+    type: 3}
+  m_PrefabInstance: {fileID: 8218033881960420220}
+  m_PrefabAsset: {fileID: 0}

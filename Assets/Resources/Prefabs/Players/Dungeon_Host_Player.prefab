@@ -62,7 +62,8 @@ MonoBehaviour:
     reaction_id: 0
     damageType: 
   overrideDamageSender: {fileID: 0}
-  hitBoxes: []
+  hitBoxes:
+  - {fileID: 7129754679244588675}
   damageModifier: 0
   canApplyDamage: 0
   onDamageHit:
@@ -1236,7 +1237,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   openCloseEvents: 0
   openCloseWindow: 1
-  selectedToolbar: 7
+  selectedToolbar: 0
   _isDead: 0
   _currentHealth: 0
   isImmortal: 1
@@ -2307,7 +2308,8 @@ MonoBehaviour:
     reaction_id: 0
     damageType: 
   overrideDamageSender: {fileID: 0}
-  hitBoxes: []
+  hitBoxes:
+  - {fileID: 5764948474738025567}
   damageModifier: 0
   canApplyDamage: 0
   onDamageHit:
@@ -3243,7 +3245,8 @@ MonoBehaviour:
     reaction_id: 0
     damageType: 
   overrideDamageSender: {fileID: 0}
-  hitBoxes: []
+  hitBoxes:
+  - {fileID: 2649409999037670467}
   damageModifier: 0
   canApplyDamage: 0
   onDamageHit:
@@ -3631,7 +3634,8 @@ MonoBehaviour:
     reaction_id: 0
     damageType: 
   overrideDamageSender: {fileID: 0}
-  hitBoxes: []
+  hitBoxes:
+  - {fileID: 6067087539157143782}
   damageModifier: 0
   canApplyDamage: 0
   onDamageHit:
@@ -3658,9 +3662,9 @@ GameObject:
   - component: {fileID: 8776365495033166918}
   - component: {fileID: 7129754679244588675}
   - component: {fileID: 3904534943275580183}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: hitBox
-  m_TagString: Untagged
+  m_TagString: Ignore Ragdoll
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3722,9 +3726,9 @@ GameObject:
   - component: {fileID: 3713999795325389305}
   - component: {fileID: 5764948474738025567}
   - component: {fileID: 7234681563072769144}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: hitBox
-  m_TagString: Untagged
+  m_TagString: Ignore Ragdoll
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3786,9 +3790,9 @@ GameObject:
   - component: {fileID: 6442681238165326474}
   - component: {fileID: 6067087539157143782}
   - component: {fileID: 5283559196887619042}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: hitBox
-  m_TagString: Untagged
+  m_TagString: Ignore Ragdoll
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

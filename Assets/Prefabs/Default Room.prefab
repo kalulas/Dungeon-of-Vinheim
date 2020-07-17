@@ -6491,7 +6491,7 @@ PrefabInstance:
     - target: {fileID: 5789470963287294490, guid: 69990241382df7d46a7becbafff63839,
         type: 3}
       propertyPath: m_Name
-      value: EntranceRight
+      value: Entrance(Right)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69990241382df7d46a7becbafff63839, type: 3}
@@ -6581,7 +6581,7 @@ PrefabInstance:
     - target: {fileID: 5789470963287294490, guid: 69990241382df7d46a7becbafff63839,
         type: 3}
       propertyPath: m_Name
-      value: EntranceLeft
+      value: Entrance(Left)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69990241382df7d46a7becbafff63839, type: 3}
@@ -6747,7 +6747,7 @@ PrefabInstance:
     - target: {fileID: 5789470963287294490, guid: 69990241382df7d46a7becbafff63839,
         type: 3}
       propertyPath: m_Name
-      value: EntranceDown
+      value: Entrance(Down)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69990241382df7d46a7becbafff63839, type: 3}
@@ -6837,7 +6837,7 @@ PrefabInstance:
     - target: {fileID: 5789470963287294490, guid: 69990241382df7d46a7becbafff63839,
         type: 3}
       propertyPath: m_Name
-      value: EntranceUp
+      value: Entrance(Up)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69990241382df7d46a7becbafff63839, type: 3}

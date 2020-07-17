@@ -30,7 +30,7 @@ public class ActionManager : SingletonMonoBehaviour<ActionManager>
     public void AddIObject(InteractableObject IObject){
         if (!IObjectList.Contains(IObject)) {
             IObjectList.Enqueue(IObject);
-            Debug.Log("AddAction, Current Queue: " + IObjectList.Count);
+            //Debug.Log("AddAction, Current Queue: " + IObjectList.Count);
         } else {
             //Debug.Log("Action already in ActionList!");
         }
@@ -48,7 +48,7 @@ public class ActionManager : SingletonMonoBehaviour<ActionManager>
             }
 
             IObjectList = new Queue<InteractableObject>(tmpActionList);
-            Debug.Log("RemoveAction, Current Queue: " + IObjectList.Count);
+            //Debug.Log("RemoveAction, Current Queue: " + IObjectList.Count);
         } else {
             //Debug.LogFormat("Action {0} not found in ActionList", IObject);
         }

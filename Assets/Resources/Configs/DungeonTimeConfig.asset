@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e506842f1d423354d8a0215722420e6d, type: 3}
   m_Name: DungeonTimeConfig
   m_EditorClassIdentifier: 
-  EntranceQueueWait: 0
-  EntranceAnimation: 0
+  EntranceQueueWait: 5
+  EntranceAnimation: 1
+  GameInternal: 5
+  LoadSceneWait: 1

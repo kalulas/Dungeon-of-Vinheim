@@ -276,6 +276,10 @@ namespace Invector.vCharacterController
             currentStaminaRecoveryDelay = 2f;
         }
 
+        public void SendEvent() {
+
+        }
+
         #region Check Action Triggers 
 
         /// <summary>
